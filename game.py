@@ -1,4 +1,4 @@
-
+from enum import Enum
 
 CardList = [
     "サイバーヴァリー",
@@ -62,14 +62,49 @@ def checkDeck():
 def id2name(index):
     return CardList[index]
 
+def name2id(index):
+    return CardList.index(index)
+
+class Position(Enum):
+    DECK = 0
+    HAND = 1
+    MAGIC_FIELD = 2
+    MONSTER_FIELD = 3
+    GRAVEYARD = 4
+    BANISHED = 5
+
+class Card:
+    def __init__(self,index) -> None:
+        self.id = index        
+        self.name = id2name(index)
+        self.pos = Position.DECK
+
+    def __repr__(self) -> str:
+        return self.name + repr(self.pos)
 
 class GameState:
-    def __init__(self) -> None:
-        pass
+    def __init__(self,deckList) -> None:
+        deckNum = 0
+        self.deck = []
+        for k in CardList:
+            for _ in range(Deck[k]):
+                self.deck.append(Card(name2id(k)))
+    
+    def __repr__(self):
+        rep ="" 
+        for card in self.deck:
+            rep += card.__repr__() + "\n"
+        return rep
+            
+            
+
+
 
 
 def main():
     checkDeck()
+    gameState = GameState(Deck)
+    print(gameState)
 
 if __name__ == '__main__':
     main()

@@ -25,11 +25,51 @@ CardList = [
     "マジカルエクスプロージョン",
 ]
 
-def id2name(index):
+Deck = {
+    "サイバーヴァリー":3,
+    "ドグマガイ":3,
+    "エアーマン":1,
+    "光帝クライス":1,
+    "混沌の黒魔術師":1,
+    "ディスクガイ" : 1,
+    "アームズホール" :3,
+    "デステニードロー": 3,
+    "名推理": 3,
+    "モンスターゲート":3,
+    "フェニブレ":2,
+    "DDR":2,
+    "手札断殺":2,
+    "トレードイン":2,
+    "魔法石の採掘":2,
+    "死者転生":1,
+    "次元融合":1,
+    "死者蘇生":1,
+    "手札抹殺":1,
+    "早すぎた埋葬":1,
+    "魔法再生":1,
+    "マジカルエクスプロージョン":2,
+}
+
+def checkDeck():
+    deckNum = 0
+    for k in CardList:
+        deckNum += Deck[k]
+
+    print("number of cards in the deck is {}".format(deckNum))
     
+    return 
+
+def id2name(index):
+    return CardList[index]
 
 
 class GameState:
     def __init__(self) -> None:
         pass
 
+
+def main():
+    checkDeck()
+
+if __name__ == '__main__':
+    main()

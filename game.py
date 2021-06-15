@@ -89,17 +89,16 @@ class GameState:
         for k in CardList:
             for _ in range(Deck[k]):
                 self.deck.append(Card(name2id(k)))
+        self.life = 8000
     
     def __repr__(self):
         rep ="" 
         for card in self.deck:
             rep += card.__repr__() + "\n"
         return rep
+
+
             
-            
-
-
-
 
 def main():
     checkDeck()

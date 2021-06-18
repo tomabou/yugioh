@@ -30,32 +30,31 @@ CardList = [
 ]
 
 Deck = {
-    "ドグマガイ":2,
-    "混沌の黒魔術師":1,
-    "光帝クライス":1,
-    "エアーマン":1,
-    "ディスクガイ" : 1,
-    "サイバーヴァリー":2,
-    "次元融合":1,
-    "増援":1,
-    "モンスターゲート":2,
-    "トレードイン":2,
+    "ドグマガイ": 2,
+    "混沌の黒魔術師": 1,
+    "光帝クライス": 1,
+    "エアーマン": 1,
+    "ディスクガイ": 1,
+    "サイバーヴァリー": 2,
+    "次元融合": 1,
+    "増援": 1,
+    "モンスターゲート": 2,
+    "トレードイン": 2,
     "デステニードロー": 3,
-    "アームズホール" :3,
+    "アームズホール": 3,
     "名推理": 3,
-    "手札抹殺":1,
-    "死者蘇生":1,
-    "魔法石の採掘":2,
-    "DDR":2,
-    "フェニブレ":2,
-    "早すぎた埋葬":1,
-    "手札断殺":2,
-    "死者転生":2,
-    "成金ゴブリン":2,
-    "魔法再生":0,
-    "マジカルエクスプロージョン":2,
+    "手札抹殺": 1,
+    "死者蘇生": 1,
+    "魔法石の採掘": 2,
+    "DDR": 2,
+    "フェニブレ": 2,
+    "早すぎた埋葬": 1,
+    "手札断殺": 2,
+    "死者転生": 2,
+    "成金ゴブリン": 2,
+    "魔法再生": 0,
+    "マジカルエクスプロージョン": 2,
 }
-
 
 
 def checkDeck():
@@ -64,14 +63,17 @@ def checkDeck():
         deckNum += Deck[k]
 
     print("number of cards in the deck is {}".format(deckNum))
-    
-    return 
+
+    return
+
 
 def id2name(index):
     return CardList[index]
 
+
 def name2id(index):
     return CardList.index(index)
+
 
 class Position(Enum):
     DECK = 0
@@ -81,13 +83,15 @@ class Position(Enum):
     GRAVEYARD = 4
     BANISHED = 5
 
+
 class Card:
-    id : int
-    deckpos : int
-    name :str
-    pos : Position
-    def __init__(self,index,deckpos) -> None:
-        self.id: int = index        
+    id: int
+    deckpos: int
+    name: str
+    pos: Position
+
+    def __init__(self, index, deckpos) -> None:
+        self.id: int = index
         self.deckpos: int = deckpos
         self.name = id2name(index)
         self.pos = Position.DECK
@@ -95,8 +99,7 @@ class Card:
     def __repr__(self) -> str:
         return self.name + repr(self.pos)
 
-
-    def effect(self,cards) -> None:
+    def effect(self, cards) -> None:
         if self.name == "デステニードロー":
             assert(len(cards) == 1)
             self.pos == Position.HAND
@@ -106,18 +109,17 @@ class Card:
 
 
 class GameState:
-    def __init__(self,deckList) -> None:
-        deckNum = 0
-        self.deck: list[Card]= []
+    def __init__(self, deckList) -> None:
+        self.deck: List[Card] = []
         deckpos = 0
         for k in CardList:
             for j in range(Deck[k]):
-                self.deck.append(Card(name2id(k),deckpos))
+                self.deck.append(Card(name2id(k), deckpos))
                 deckpos += 1
         self.life = 8000
-    
+
     def __repr__(self):
-        rep ="" 
+        rep = ""
         for card in self.deck:
             rep += card.__repr__() + "\n"
         return rep
@@ -127,44 +129,45 @@ class GameState:
         for c in self.deck:
             if c.pos == Position.HAND:
                 ret.append(c)
-        return ret 
+        return ret
 
     def deckCards(self) -> List[Card]:
         ret = []
         for c in self.deck:
             if c.pos == Position.DECK:
                 ret.append(c)
-        return  ret 
+        return ret
 
-    def canEffect(self,i)-> List[Card]:
+    def canEffect(self, i) -> List[Card]:
         card = self.deck[i]
         ret = []
-        if card.name=="デステニードロー":
+        if card.name == "デステニードロー":
             if card.pos != Position.HAND:
-                return None
+                return []
             hands = self.handCards()
             for c in hands:
                 if c.isDhero():
                     ret.append(c)
-            return ret                    
 
+            return ret
+        return ret
 
-    def canDraw(self,number) -> bool:
+    def canDraw(self, number) -> bool:
         decks = self.deckCards()
-        return  len(decks) >= number
+        return len(decks) >= number
 
     def draw(self, number) -> None:
         decks = self.deckCards()
-        cs = random.choices(population=decks,k=number)
+        cs = random.sample(population=decks, k=number)
         for c in cs:
-            assert(c.pos == Position.DECK,c.pos)
+            assert c.pos == Position.DECK, c.pos
             c.pos = Position.HAND
-    
+
     def getCardbyName(self, name) -> Card:
         for c in self.deck:
             if c.name == name:
                 return c
-            
+
 
 def test():
     gameState = GameState(Deck)
@@ -173,10 +176,10 @@ def test():
     assert(not gameState.canEffect(d.deckpos))
     d.pos = Position.HAND
     disk.pos = Position.HAND
-    cs = gameState.canEffect(d.deckpos) 
-    assert(cs== [disk.pos],"canEffect is {}".format(cs))
+    cs = gameState.canEffect(d.deckpos)
+    assert cs == [disk], "canEffect is {}".format(cs)
     print("run デステニードロー test")
-    
+
 
 def main():
     checkDeck()
@@ -186,6 +189,7 @@ def main():
     print(gameState)
 
     test()
+
 
 if __name__ == '__main__':
     main()

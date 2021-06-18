@@ -107,10 +107,21 @@ class Card:
             assert self.pos == Position.HAND
             self.pos = Position.GRAVEYARD
             assert cards[0].pos == Position.HAND
+            assert cards[0].isDhero()
+            cards[0].pos = Position.GRAVEYARD
+        elif self.name == CardName.tトレードイン:
+            assert len(cards) == 1
+            assert self.pos == Position.HAND
+            self.pos = Position.GRAVEYARD
+            assert cards[0].pos == Position.HAND
+            assert cards[0].isLevel8()
             cards[0].pos = Position.GRAVEYARD
 
     def isDhero(self) -> bool:
         return self.name == CardName.dドグマガイ or self.name == CardName.dディスクガイ
+
+    def isLevel8(self) -> bool:
+        return self.name == CardName.dドグマガイ or self.name == CardName.k混沌の黒魔術師
 
 
 class GameState:
@@ -152,8 +163,16 @@ class GameState:
             for c in hands:
                 if c.isDhero():
                     ret.append(c)
-
             return ret
+        elif card.name == CardName.tトレードイン:
+            if card.pos != Position.HAND:
+                return []
+            hands = self.handCards()
+            for c in hands:
+                if c.isLevel8():
+                    ret.append(c)
+            return ret
+
         return ret
 
     def canDraw(self, number) -> bool:
@@ -173,7 +192,7 @@ class GameState:
                 return c
 
 
-def test():
+def test1():
     gameState = GameState(Deck)
     d = gameState.getCardbyName(CardName.dデステニードロー)
     disk = gameState.getCardbyName(CardName.dディスクガイ)
@@ -186,6 +205,26 @@ def test():
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
     print("run デステニードロー test")
+
+
+def test2():
+    gameState = GameState(Deck)
+    d = gameState.getCardbyName(CardName.tトレードイン)
+    disk = gameState.getCardbyName(CardName.k混沌の黒魔術師)
+    assert not gameState.canEffect(d)
+    d.pos = Position.HAND
+    disk.pos = Position.HAND
+    cs = gameState.canEffect(d)
+    assert cs == [disk], "canEffect is {}".format(cs)
+    d.effect([disk])
+    assert d.pos == Position.GRAVEYARD
+    assert disk.pos == Position.GRAVEYARD
+    print("run トレードイン test")
+
+
+def test():
+    test1()
+    test2()
 
 
 def main():

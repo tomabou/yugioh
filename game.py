@@ -82,6 +82,10 @@ class Position(Enum):
     BANISHED = 5
 
 class Card:
+    id : int
+    deckpos : int
+    name :str
+    pos : Position
     def __init__(self,index,deckpos) -> None:
         self.id: int = index        
         self.deckpos: int = deckpos
@@ -105,9 +109,11 @@ class GameState:
     def __init__(self,deckList) -> None:
         deckNum = 0
         self.deck: list[Card]= []
+        deckpos = 0
         for k in CardList:
             for j in range(Deck[k]):
-                self.deck.append(Card(name2id(k),j))
+                self.deck.append(Card(name2id(k),deckpos))
+                deckpos += 1
         self.life = 8000
     
     def __repr__(self):
@@ -121,7 +127,7 @@ class GameState:
         for c in self.deck:
             if c.pos == Position.HAND:
                 ret.append(c)
-        return c
+        return ret 
 
     def deckCards(self) -> List[Card]:
         ret = []
@@ -140,7 +146,7 @@ class GameState:
             for c in hands:
                 if c.isDhero():
                     ret.append(c)
-            return c                    
+            return ret                    
 
 
     def canDraw(self,number) -> bool:
@@ -151,9 +157,26 @@ class GameState:
         decks = self.deckCards()
         cs = random.choices(population=decks,k=number)
         for c in cs:
-            assert(c.pos == Position.DECK)
+            assert(c.pos == Position.DECK,c.pos)
             c.pos = Position.HAND
+    
+    def getCardbyName(self, name) -> Card:
+        for c in self.deck:
+            if c.name == name:
+                return c
             
+
+def test():
+    gameState = GameState(Deck)
+    d = gameState.getCardbyName("デステニードロー")
+    disk = gameState.getCardbyName("ディスクガイ")
+    assert(not gameState.canEffect(d.deckpos))
+    d.pos = Position.HAND
+    disk.pos = Position.HAND
+    cs = gameState.canEffect(d.deckpos) 
+    assert(cs== [disk.pos],"canEffect is {}".format(cs))
+    print("run デステニードロー test")
+    
 
 def main():
     checkDeck()
@@ -161,6 +184,8 @@ def main():
     print(gameState)
     gameState.draw(6)
     print(gameState)
+
+    test()
 
 if __name__ == '__main__':
     main()

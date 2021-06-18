@@ -191,7 +191,6 @@ def test():
 def main():
     checkDeck()
     gameState = GameState(Deck)
-    print(gameState)
     gameState.draw(6)
     print(gameState)
 

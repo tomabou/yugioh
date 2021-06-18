@@ -3,64 +3,65 @@ from enum import Enum
 from typing import List
 import random
 
-CardList = [
-    "サイバーヴァリー",
-    "ドグマガイ",
-    "エアーマン",
-    "光帝クライス",
-    "混沌の黒魔術師",
-    "ディスクガイ",
-    "アームズホール",
-    "デステニードロー",
-    "名推理",
-    "モンスターゲート",
-    "フェニブレ",
-    "DDR",
-    "手札断殺",
-    "トレードイン",
-    "魔法石の採掘",
-    "死者転生",
-    "次元融合",
-    "死者蘇生",
-    "手札抹殺",
-    "早すぎた埋葬",
-    "魔法再生",
-    "増援",
-    "成金ゴブリン",
-    "マジカルエクスプロージョン",
-]
+
+class CardName(Enum):
+    sサイバーヴァリー = 0
+    dドグマガイ = 1
+    eエアーマン = 2
+    k光帝クライス = 3
+    k混沌の黒魔術師 = 4
+    dディスクガイ = 5
+    aアームズホール = 6
+    dデステニードロー = 7
+    m名推理 = 8
+    mモンスターゲート = 9
+    fフェニブレ = 10
+    DDR = 11
+    t手札断殺 = 12
+    tトレードイン = 13
+    m魔法石の採掘 = 14
+    s死者転生 = 15
+    z次元融合 = 16
+    s死者蘇生 = 17
+    t手札抹殺 = 18
+    h早すぎた埋葬 = 19
+    m魔法再生 = 20
+    z増援 = 21
+    n成金ゴブリン = 22
+    mマジカルエクスプロージョン = 23,
+
 
 Deck = {
-    "ドグマガイ": 2,
-    "混沌の黒魔術師": 1,
-    "光帝クライス": 1,
-    "エアーマン": 1,
-    "ディスクガイ": 1,
-    "サイバーヴァリー": 2,
-    "次元融合": 1,
-    "増援": 1,
-    "モンスターゲート": 2,
-    "トレードイン": 2,
-    "デステニードロー": 3,
-    "アームズホール": 3,
-    "名推理": 3,
-    "手札抹殺": 1,
-    "死者蘇生": 1,
-    "魔法石の採掘": 2,
-    "DDR": 2,
-    "フェニブレ": 2,
-    "早すぎた埋葬": 1,
-    "手札断殺": 2,
-    "死者転生": 2,
-    "成金ゴブリン": 2,
-    "魔法再生": 0,
-    "マジカルエクスプロージョン": 2,
+    CardName.dドグマガイ: 2,
+    CardName.k混沌の黒魔術師: 1,
+    CardName.k光帝クライス: 1,
+    CardName.eエアーマン: 1,
+    CardName.dディスクガイ: 1,
+    CardName.sサイバーヴァリー: 2,
+    CardName.z次元融合: 1,
+    CardName.z増援: 1,
+    CardName.mモンスターゲート: 2,
+    CardName.tトレードイン: 2,
+    CardName.dデステニードロー: 3,
+    CardName.aアームズホール: 3,
+    CardName.m名推理: 3,
+    CardName.t手札抹殺: 1,
+    CardName.s死者蘇生: 1,
+    CardName.m魔法石の採掘: 2,
+    CardName.DDR: 2,
+    CardName.fフェニブレ: 2,
+    CardName.h早すぎた埋葬: 1,
+    CardName.t手札断殺: 2,
+    CardName.s死者転生: 2,
+    CardName.n成金ゴブリン: 2,
+    CardName.m魔法再生: 0,
+    CardName.mマジカルエクスプロージョン: 2,
 }
 
 
 def checkDeck():
     deckNum = 0
-    for k in CardList:
+    for k in CardName:
         deckNum += Deck[k]
 
     print("number of cards in the deck is {}".format(deckNum))
@@ -68,12 +69,12 @@ def checkDeck():
     return
 
 
-def id2name(index):
-    return CardList[index]
+def id2name(index: int):
+    return CardName(index)
 
 
-def name2id(index):
-    return CardList.index(index)
+def name2id(name: CardName):
+    return name
 
 
 class Position(Enum):
@@ -98,10 +99,10 @@ class Card:
         self.pos = Position.DECK
 
     def __repr__(self) -> str:
-        return self.name + repr(self.pos)
+        return repr(self.name) + repr(self.pos)
 
     def effect(self, cards: List[Card]) -> None:
-        if self.name == "デステニードロー":
+        if self.name == CardName.dデステニードロー:
             assert len(cards) == 1
             assert self.pos == Position.HAND
             self.pos = Position.GRAVEYARD
@@ -109,14 +110,14 @@ class Card:
             cards[0].pos = Position.GRAVEYARD
 
     def isDhero(self) -> bool:
-        return self.name == "ドグマガイ" or self.name == "ディスクガイ"
+        return self.name == CardName.dドグマガイ or self.name == CardName.dディスクガイ
 
 
 class GameState:
     def __init__(self, deckList) -> None:
         self.deck: List[Card] = []
         deckpos = 0
-        for k in CardList:
+        for k in CardName:
             for j in range(Deck[k]):
                 self.deck.append(Card(name2id(k), deckpos))
                 deckpos += 1
@@ -144,7 +145,7 @@ class GameState:
 
     def canEffect(self, card) -> List[Card]:
         ret = []
-        if card.name == "デステニードロー":
+        if card.name == CardName.dデステニードロー:
             if card.pos != Position.HAND:
                 return []
             hands = self.handCards()
@@ -174,8 +175,8 @@ class GameState:
 
 def test():
     gameState = GameState(Deck)
-    d = gameState.getCardbyName("デステニードロー")
-    disk = gameState.getCardbyName("ディスクガイ")
+    d = gameState.getCardbyName(CardName.dデステニードロー)
+    disk = gameState.getCardbyName(CardName.dディスクガイ)
     assert not gameState.canEffect(d)
     d.pos = Position.HAND
     disk.pos = Position.HAND

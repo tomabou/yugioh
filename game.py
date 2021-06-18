@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import List
+import random
 
 CardList = [
     "サイバーヴァリー",
@@ -54,6 +56,8 @@ Deck = {
     "マジカルエクスプロージョン":2,
 }
 
+
+
 def checkDeck():
     deckNum = 0
     for k in CardList:
@@ -78,21 +82,32 @@ class Position(Enum):
     BANISHED = 5
 
 class Card:
-    def __init__(self,index) -> None:
-        self.id = index        
+    def __init__(self,index,deckpos) -> None:
+        self.id: int = index        
+        self.deckpos: int = deckpos
         self.name = id2name(index)
         self.pos = Position.DECK
 
     def __repr__(self) -> str:
         return self.name + repr(self.pos)
 
+
+    def effect(self,cards) -> None:
+        if self.name == "デステニードロー":
+            assert(len(cards) == 1)
+            self.pos == Position.HAND
+
+    def isDhero(self) -> bool:
+        return self.name == "ドグマガイ" or self.name == "ディスクガイ"
+
+
 class GameState:
     def __init__(self,deckList) -> None:
         deckNum = 0
-        self.deck = []
+        self.deck: list[Card]= []
         for k in CardList:
-            for _ in range(Deck[k]):
-                self.deck.append(Card(name2id(k)))
+            for j in range(Deck[k]):
+                self.deck.append(Card(name2id(k),j))
         self.life = 8000
     
     def __repr__(self):
@@ -101,12 +116,50 @@ class GameState:
             rep += card.__repr__() + "\n"
         return rep
 
+    def handCards(self) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.pos == Position.HAND:
+                ret.append(c)
+        return c
 
+    def deckCards(self) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.pos == Position.DECK:
+                ret.append(c)
+        return  ret 
+
+    def canEffect(self,i)-> List[Card]:
+        card = self.deck[i]
+        ret = []
+        if card.name=="デステニードロー":
+            if card.pos != Position.HAND:
+                return None
+            hands = self.handCards()
+            for c in hands:
+                if c.isDhero():
+                    ret.append(c)
+            return c                    
+
+
+    def canDraw(self,number) -> bool:
+        decks = self.deckCards()
+        return  len(decks) >= number
+
+    def draw(self, number) -> None:
+        decks = self.deckCards()
+        cs = random.choices(population=decks,k=number)
+        for c in cs:
+            assert(c.pos == Position.DECK)
+            c.pos = Position.HAND
             
 
 def main():
     checkDeck()
     gameState = GameState(Deck)
+    print(gameState)
+    gameState.draw(6)
     print(gameState)
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum
 from typing import List
 import random
@@ -99,10 +100,13 @@ class Card:
     def __repr__(self) -> str:
         return self.name + repr(self.pos)
 
-    def effect(self, cards) -> None:
+    def effect(self, cards: List[Card]) -> None:
         if self.name == "デステニードロー":
-            assert(len(cards) == 1)
-            self.pos == Position.HAND
+            assert len(cards) == 1
+            assert self.pos == Position.HAND
+            self.pos = Position.GRAVEYARD
+            assert cards[0].pos == Position.HAND
+            cards[0].pos = Position.GRAVEYARD
 
     def isDhero(self) -> bool:
         return self.name == "ドグマガイ" or self.name == "ディスクガイ"
@@ -138,8 +142,7 @@ class GameState:
                 ret.append(c)
         return ret
 
-    def canEffect(self, i) -> List[Card]:
-        card = self.deck[i]
+    def canEffect(self, card) -> List[Card]:
         ret = []
         if card.name == "デステニードロー":
             if card.pos != Position.HAND:
@@ -173,11 +176,14 @@ def test():
     gameState = GameState(Deck)
     d = gameState.getCardbyName("デステニードロー")
     disk = gameState.getCardbyName("ディスクガイ")
-    assert(not gameState.canEffect(d.deckpos))
+    assert not gameState.canEffect(d)
     d.pos = Position.HAND
     disk.pos = Position.HAND
-    cs = gameState.canEffect(d.deckpos)
+    cs = gameState.canEffect(d)
     assert cs == [disk], "canEffect is {}".format(cs)
+    d.effect([disk])
+    assert d.pos == Position.GRAVEYARD
+    assert disk.pos == Position.GRAVEYARD
     print("run デステニードロー test")
 
 

@@ -69,7 +69,7 @@ def checkDeck():
     return
 
 
-def id2name(index: int):
+def id2name(index: int) -> CardName:
     return CardName(index)
 
 
@@ -84,12 +84,13 @@ class Position(Enum):
     MONSTER_FIELD = 3
     GRAVEYARD = 4
     BANISHED = 5
+    MAGIC_SET = 6
 
 
 class Card:
     id: int
     deckpos: int
-    name: str
+    name: CardName
     pos: Position
 
     def __init__(self, index, deckpos) -> None:
@@ -104,24 +105,32 @@ class Card:
     def effect(self, cards: List[Card]) -> None:
         if self.name == CardName.dデステニードロー:
             assert len(cards) == 1
-            assert self.pos == Position.HAND
+            assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
             assert cards[0].pos == Position.HAND
             assert cards[0].isDhero()
             cards[0].pos = Position.GRAVEYARD
         elif self.name == CardName.tトレードイン:
             assert len(cards) == 1
-            assert self.pos == Position.HAND
+            assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
             assert cards[0].pos == Position.HAND
             assert cards[0].isLevel8()
             cards[0].pos = Position.GRAVEYARD
+
+    def setMagic(self) -> None:
+        assert self.pos == Position.HAND
+        self.pos = Position.MAGIC_SET
 
     def isDhero(self) -> bool:
         return self.name == CardName.dドグマガイ or self.name == CardName.dディスクガイ
 
     def isLevel8(self) -> bool:
         return self.name == CardName.dドグマガイ or self.name == CardName.k混沌の黒魔術師
+
+    def isMagic(self) -> bool:
+        v = self.name.value
+        return v >= CardName.aアームズホール.value and v <= CardName.n成金ゴブリン.value
 
 
 class GameState:
@@ -154,10 +163,17 @@ class GameState:
                 ret.append(c)
         return ret
 
+    def getCardByPos(self, pos: Position) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.pos == pos:
+                ret.append(c)
+        return ret
+
     def canEffect(self, card) -> List[Card]:
         ret = []
         if card.name == CardName.dデステニードロー:
-            if card.pos != Position.HAND:
+            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
                 return []
             hands = self.handCards()
             for c in hands:
@@ -165,15 +181,23 @@ class GameState:
                     ret.append(c)
             return ret
         elif card.name == CardName.tトレードイン:
-            if card.pos != Position.HAND:
+            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
                 return []
             hands = self.handCards()
             for c in hands:
                 if c.isLevel8():
                     ret.append(c)
             return ret
-
         return ret
+
+    def canSet(self, card) -> bool:
+        fieldCards = self.getCardByPos(Position.MAGIC_SET)
+        assert len(fieldCards) <= 5
+        if len(fieldCards) == 5:
+            return False
+        if card.pos != Position.HAND:
+            return False
+        return True
 
     def canDraw(self, number) -> bool:
         decks = self.deckCards()
@@ -222,9 +246,25 @@ def test2():
     print("run トレードイン test")
 
 
+def test3():
+    gameState = GameState(Deck)
+    d = gameState.getCardbyName(CardName.dデステニードロー)
+    disk = gameState.getCardbyName(CardName.dディスクガイ)
+    d.pos = Position.HAND
+    disk.pos = Position.HAND
+    d.setMagic()
+    assert d.pos == Position.MAGIC_SET
+    assert gameState.canEffect(d) == [disk]
+    d.effect([disk])
+    assert d.pos == Position.GRAVEYARD
+    assert disk.pos == Position.GRAVEYARD
+    print("run set test")
+
+
 def test():
     test1()
     test2()
+    test3()
 
 
 def main():

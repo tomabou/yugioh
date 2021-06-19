@@ -141,7 +141,8 @@ class GameState:
             for j in range(Deck[k]):
                 self.deck.append(Card(name2id(k), deckpos))
                 deckpos += 1
-        self.life = 8000
+        self.life: int = 8000
+        self.hasNormalSummon: bool = False
 
     def __repr__(self):
         rep = ""
@@ -214,6 +215,7 @@ class GameState:
         for c in self.deck:
             if c.name == name:
                 return c
+        assert False, "getCardERROR"
 
 
 def test1():

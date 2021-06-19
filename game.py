@@ -149,7 +149,8 @@ class Card:
 
     def numOfEffectTarget(self) -> int:
         if self.name in [CardName.dディスクガイ, CardName.m名推理,
-                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン]:
+                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン,
+                         CardName.aアームズホール]:
             return 0
         elif self.name in [CardName.fフェニブレ, CardName.DDR,
                            CardName.t手札抹殺, CardName.s死者転生]:
@@ -410,14 +411,21 @@ def test4():
     gameState = GameState(Deck)
     a = gameState.getCardbyName(CardName.aアームズホール)
     a.pos = Position.HAND
+    acs = gameState.vaildActions()
+    assert gameState.canEffect(a)
+    print(gameState.getTarget1(a))
+    print(acs)
+    print(gameState.subState)
+    gameState.effect(a)
 
-    print("run set test")
+    print("run arums test")
 
 
 def test():
     test1()
     test2()
     test3()
+    # test4()
 
 
 def main():

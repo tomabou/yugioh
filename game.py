@@ -1,6 +1,7 @@
 from __future__ import annotations
+from collections.abc import Iterable
 from enum import Enum
-from typing import List
+from typing import List, Tuple
 import random
 
 
@@ -102,7 +103,8 @@ class Card:
     def __repr__(self) -> str:
         return repr(self.name) + repr(self.pos)
 
-    def effect(self, cards: List[Card]) -> None:
+    def effect(self, cards: Iterable[Card]) -> Tuple[SubState, int]:
+        cards = list(cards)
         if self.name == CardName.dデステニードロー:
             assert len(cards) == 1
             assert self.pos == Position.HAND or Position.MAGIC_SET
@@ -110,6 +112,7 @@ class Card:
             assert cards[0].pos == Position.HAND
             assert cards[0].isDhero()
             cards[0].pos = Position.GRAVEYARD
+            return (SubState.Draw, 2)
         elif self.name == CardName.tトレードイン:
             assert len(cards) == 1
             assert self.pos == Position.HAND or Position.MAGIC_SET
@@ -117,6 +120,15 @@ class Card:
             assert cards[0].pos == Position.HAND
             assert cards[0].isLevel8()
             cards[0].pos = Position.GRAVEYARD
+            return (SubState.Draw, 2)
+        elif self.name == CardName.aアームズホール:
+            assert len(cards) == 1
+            assert self.pos == Position.HAND or Position.MAGIC_SET
+            self.pos = Position.GRAVEYARD
+            assert cards[0].pos in [Position.GRAVEYARD, Position.DECK]
+            return SubState.ArmsHole, 0
+
+        return SubState.Free, 0
 
     def setMagic(self) -> None:
         assert self.pos == Position.HAND
@@ -132,10 +144,21 @@ class Card:
         v = self.name.value
         return v >= CardName.aアームズホール.value and v <= CardName.n成金ゴブリン.value
 
+    def isEquipSpell(self) -> bool:
+        return self.name in [CardName.fフェニブレ, CardName.DDR, CardName.h早すぎた埋葬]
+
+
+class SubState(Enum):
+    Free = 0
+    ArmsHole = 1
+    Draw = 2
+
 
 class GameState:
     def __init__(self, deckList) -> None:
         self.deck: List[Card] = []
+        self.subState: SubState = SubState.Free
+        self.drawNum: int = 0
         deckpos = 0
         for k in CardName:
             for j in range(Deck[k]):
@@ -171,7 +194,21 @@ class GameState:
                 ret.append(c)
         return ret
 
-    def canEffect(self, card) -> List[Card]:
+    def getEquipSpell(self) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.isEquipSpell():
+                ret.append(c)
+        return ret
+
+    def effect(self, card: Card, cards: Iterable[Card]) -> None:
+        sub, num = card.effect(cards)
+        self.subState = sub
+        self.drawNum = num
+
+    def canEffect(self, card) -> Iterable[Card]:
+        if self.subState != SubState.Free:
+            return []
         ret = []
         if card.name == CardName.dデステニードロー:
             if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
@@ -189,6 +226,15 @@ class GameState:
                 if c.isLevel8():
                     ret.append(c)
             return ret
+        elif card.name == CardName.aアームズホール:
+            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
+                return []
+            if len(self.deckCards()) == 0:
+                return []
+            return filter(
+                lambda c: (c.pos in [Position.DECK, Position.GRAVEYARD]),
+                self.getEquipSpell())
+
         return ret
 
     def canSet(self, card) -> bool:

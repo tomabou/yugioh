@@ -1,7 +1,7 @@
 from __future__ import annotations
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from enum import Enum
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import random
 
 
@@ -147,6 +147,47 @@ class Card:
     def isEquipSpell(self) -> bool:
         return self.name in [CardName.fフェニブレ, CardName.DDR, CardName.h早すぎた埋葬]
 
+    def numOfEffectTarget(self) -> int:
+        if self.name in [CardName.dディスクガイ, CardName.m名推理,
+                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン]:
+            return 0
+        elif self.name in [CardName.fフェニブレ, CardName.DDR,
+                           CardName.t手札抹殺, CardName.s死者転生]:
+            return 2
+        return 1
+
+
+class EffectAction0():
+    def __init__(self, card: Card) -> None:
+        self.card = card
+
+
+class EffectAction1():
+    def __init__(self, card: Card, target: Card) -> None:
+        self.card = card
+        self.target = target
+
+
+class EffectAction2():
+    def __init__(self, card: Card, t1: Card, t2: Card) -> None:
+        self.card = card
+        self.target1 = t1
+        self.target2 = t2
+
+
+class DrawAction():
+    def __init__(self, n) -> None:
+        self.num = n
+
+
+class ArmsHoleAction2():
+    def __init__(self, card) -> None:
+        self.equip = card
+
+
+Action = Union[EffectAction0, EffectAction1,
+               EffectAction2, DrawAction, ArmsHoleAction2]
+
 
 class SubState(Enum):
     Free = 0
@@ -201,14 +242,49 @@ class GameState:
                 ret.append(c)
         return ret
 
+    def vaildActions(self) -> Sequence[Action]:
+        if self.subState == SubState.Draw:
+            return [DrawAction(self.drawNum)]
+        elif self.subState == SubState.Free:
+            acs: List[Action] = []
+            hands = self.getCardByPos(Position.HAND)
+            for c in hands:
+                flag = self.canEffect(c)
+                if not flag:
+                    continue
+                target_num = c.numOfEffectTarget()
+                if target_num == 0:
+                    acs.append(EffectAction0(c))
+                elif target_num == 1:
+                    targets = self.getTarget1(c)
+                    for tag in targets:
+                        acs.append(EffectAction1(c, tag))
+
+            return acs
+        elif self.subState == SubState.ArmsHole:
+            acs = []
+            cards = filter(
+                lambda c: (c.pos in [Position.DECK, Position.GRAVEYARD]),
+                self.getEquipSpell())
+            for c in cards:
+                acs.append(ArmsHoleAction2(c))
+            return acs
+        return []
+
+    def runAction(self, action: Action) -> None:
+        if type(action) == DrawAction:
+            self.draw(action.num)
+        elif type(action) == ArmsHoleAction2:
+            card = action.equip
+            assert card.pos in [Position.GRAVEYARD, Position.DECK]
+            card.pos = Position.HAND
+
     def effect(self, card: Card, cards: Iterable[Card]) -> None:
         sub, num = card.effect(cards)
         self.subState = sub
         self.drawNum = num
 
-    def canEffect(self, card) -> Iterable[Card]:
-        if self.subState != SubState.Free:
-            return []
+    def getTarget1(self, card) -> Iterable[Card]:
         ret = []
         if card.name == CardName.dデステニードロー:
             if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
@@ -226,16 +302,37 @@ class GameState:
                 if c.isLevel8():
                     ret.append(c)
             return ret
+        return ret
+
+    def canEffect(self, card) -> bool:
+        if self.subState != SubState.Free:
+            return False
+        if card.name == CardName.dデステニードロー:
+            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
+                return False
+            hands = self.handCards()
+            for c in hands:
+                if c.isDhero():
+                    return True
+            return False
+        elif card.name == CardName.tトレードイン:
+            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
+                return False
+            hands = self.handCards()
+            for c in hands:
+                if c.isLevel8():
+                    return True
+            return False
         elif card.name == CardName.aアームズホール:
             if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
-                return []
+                return False
             if len(self.deckCards()) == 0:
-                return []
-            return filter(
+                return False
+            return any(map(
                 lambda c: (c.pos in [Position.DECK, Position.GRAVEYARD]),
-                self.getEquipSpell())
+                self.getEquipSpell()))
 
-        return ret
+        assert False, "encont not implemented card"
 
     def canSet(self, card) -> bool:
         fieldCards = self.getCardByPos(Position.MAGIC_SET)
@@ -272,7 +369,7 @@ def test1():
     d.pos = Position.HAND
     disk.pos = Position.HAND
     cs = gameState.canEffect(d)
-    assert cs == [disk], "canEffect is {}".format(cs)
+    assert cs, "canEffect is {}".format(cs)
     d.effect([disk])
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
@@ -287,7 +384,7 @@ def test2():
     d.pos = Position.HAND
     disk.pos = Position.HAND
     cs = gameState.canEffect(d)
-    assert cs == [disk], "canEffect is {}".format(cs)
+    assert cs, "canEffect is {}".format(cs)
     d.effect([disk])
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
@@ -302,10 +399,18 @@ def test3():
     disk.pos = Position.HAND
     d.setMagic()
     assert d.pos == Position.MAGIC_SET
-    assert gameState.canEffect(d) == [disk]
+    assert gameState.canEffect(d)
     d.effect([disk])
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
+    print("run set test")
+
+
+def test4():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.aアームズホール)
+    a.pos = Position.HAND
+
     print("run set test")
 
 

@@ -103,31 +103,34 @@ class Card:
     def __repr__(self) -> str:
         return repr(self.name) + repr(self.pos)
 
-    def effect(self, cards: Iterable[Card]) -> Tuple[SubState, int]:
-        cards = list(cards)
+    def effect1(self, card) -> Tuple[SubState, int]:
         if self.name == CardName.dデステニードロー:
-            assert len(cards) == 1
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
-            assert cards[0].pos == Position.HAND
-            assert cards[0].isDhero()
-            cards[0].pos = Position.GRAVEYARD
-            return (SubState.Draw, 2)
+            assert card.pos == Position.HAND
+            assert card.isDhero()
+            card.pos = Position.GRAVEYARD
+            return SubState.Draw, 2
         elif self.name == CardName.tトレードイン:
-            assert len(cards) == 1
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
-            assert cards[0].pos == Position.HAND
-            assert cards[0].isLevel8()
-            cards[0].pos = Position.GRAVEYARD
-            return (SubState.Draw, 2)
+            assert card.pos == Position.HAND
+            assert card.isLevel8()
+            card.pos = Position.GRAVEYARD
+            return SubState.Draw, 2
         elif self.name == CardName.aアームズホール:
-            assert len(cards) == 1
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
-            assert cards[0].pos in [Position.GRAVEYARD, Position.DECK]
+            assert card.pos == Position.DECK
+            card.pos = Position.GRAVEYARD
             return SubState.ArmsHole, 0
 
+        assert False, "not implemented"
+        return SubState.Free, 0
+
+    def effect0(self) -> Tuple[SubState, int]:
+
+        assert False, "not implemented"
         return SubState.Free, 0
 
     def setMagic(self) -> None:
@@ -149,8 +152,7 @@ class Card:
 
     def numOfEffectTarget(self) -> int:
         if self.name in [CardName.dディスクガイ, CardName.m名推理,
-                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン,
-                         CardName.aアームズホール]:
+                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン]:
             return 0
         elif self.name in [CardName.fフェニブレ, CardName.DDR,
                            CardName.t手札抹殺, CardName.s死者転生]:
@@ -279,9 +281,21 @@ class GameState:
             card = action.equip
             assert card.pos in [Position.GRAVEYARD, Position.DECK]
             card.pos = Position.HAND
+        elif type(action) == EffectAction0:
+            card = action.card
+            self.effect0(card)
+        elif type(action) == EffectAction1:
+            card = action.card
+            target = action.target
+            self.effect1(card, target)
 
-    def effect(self, card: Card, cards: Iterable[Card]) -> None:
-        sub, num = card.effect(cards)
+    def effect1(self, card: Card, target: Card) -> None:
+        sub, num = card.effect1(target)
+        self.subState = sub
+        self.drawNum = num
+
+    def effect0(self, card: Card) -> None:
+        sub, num = card.effect0()
         self.subState = sub
         self.drawNum = num
 
@@ -303,6 +317,9 @@ class GameState:
                 if c.isLevel8():
                     ret.append(c)
             return ret
+        elif card.name == CardName.aアームズホール:
+            target = random.choice(self.getCardByPos(Position.DECK))
+            ret = [target]
         return ret
 
     def canEffect(self, card) -> bool:
@@ -371,7 +388,7 @@ def test1():
     disk.pos = Position.HAND
     cs = gameState.canEffect(d)
     assert cs, "canEffect is {}".format(cs)
-    d.effect([disk])
+    d.effect1(disk)
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
     print("run デステニードロー test")
@@ -386,7 +403,7 @@ def test2():
     disk.pos = Position.HAND
     cs = gameState.canEffect(d)
     assert cs, "canEffect is {}".format(cs)
-    d.effect([disk])
+    d.effect1(disk)
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
     print("run トレードイン test")
@@ -401,7 +418,7 @@ def test3():
     d.setMagic()
     assert d.pos == Position.MAGIC_SET
     assert gameState.canEffect(d)
-    d.effect([disk])
+    d.effect1(disk)
     assert d.pos == Position.GRAVEYARD
     assert disk.pos == Position.GRAVEYARD
     print("run set test")
@@ -413,10 +430,11 @@ def test4():
     a.pos = Position.HAND
     acs = gameState.vaildActions()
     assert gameState.canEffect(a)
-    print(gameState.getTarget1(a))
-    print(acs)
-    print(gameState.subState)
-    gameState.effect(a)
+    assert len(acs) == 1
+    gameState.runAction(acs[0])
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD
 
     print("run arums test")
 
@@ -425,7 +443,7 @@ def test():
     test1()
     test2()
     test3()
-    # test4()
+    test4()
 
 
 def main():

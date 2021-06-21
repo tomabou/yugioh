@@ -238,6 +238,11 @@ class GameState:
                 ret.append(c)
         return ret
 
+    def getMagicFieldNum(self) -> int:
+        a = len(self.getCardByPos(Position.MAGIC_FIELD))
+        b = len(self.getCardByPos(Position.MAGIC_SET))
+        return a + b
+
     def getEquipSpell(self) -> List[Card]:
         ret = []
         for c in self.deck:
@@ -322,28 +327,33 @@ class GameState:
             ret = [target]
         return ret
 
+    def canEffectMagic(self, card) -> bool:
+        if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
+            return False
+        if card.pos == Position.HAND and self.getMagicFieldNum() >= 5:
+            return False
+        return True
+
     def canEffect(self, card) -> bool:
         if self.subState != SubState.Free:
             return False
-        if card.name == CardName.dデステニードロー:
-            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
+        if card.isMagic():
+            if not self.canEffectMagic(card):
                 return False
+
+        if card.name == CardName.dデステニードロー:
             hands = self.handCards()
             for c in hands:
                 if c.isDhero():
                     return True
             return False
         elif card.name == CardName.tトレードイン:
-            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
-                return False
             hands = self.handCards()
             for c in hands:
                 if c.isLevel8():
                     return True
             return False
         elif card.name == CardName.aアームズホール:
-            if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
-                return False
             if len(self.deckCards()) == 0:
                 return False
             return any(map(
@@ -435,6 +445,7 @@ def test4():
     acs = gameState.vaildActions()
     gameState.runAction(acs[0])
     assert a.pos == Position.GRAVEYARD
+    print(gameState)
 
     print("run arums test")
 

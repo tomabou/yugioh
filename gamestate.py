@@ -146,7 +146,7 @@ class GameState:
             cs = self.getSSMonster()
             return filter(lambda c: c.pos == Position.GRAVEYARD, cs)
 
-        #assert False, "not implemented"
+        # assert False, "not implemented"
         return ret
 
     def canEffectMagic(self, card) -> bool:
@@ -187,7 +187,7 @@ class GameState:
             cs = self.getSSMonster()
             for c in cs:
                 if c.pos == Position.GRAVEYARD:
-                    True
+                    return True
             return False
 
         assert False, "encont not implemented card"

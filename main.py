@@ -58,9 +58,25 @@ def test4():
     acs = gameState.vaildActions()
     gameState.runAction(acs[0])
     assert a.pos == Position.GRAVEYARD
-    print(gameState)
+    # print(gameState)
 
     print("run arums test")
+
+
+def test5():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.s死者蘇生)
+    a.pos = Position.HAND
+    b = gameState.getCardbyName(CardName.dディスクガイ)
+    b.pos = Position.GRAVEYARD
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    assert len(acs) == 1
+    gameState.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD
+    assert b.pos == Position.MONSTER_FIELD
+
+    print("run sosei test")
 
 
 def test():
@@ -68,6 +84,7 @@ def test():
     test2()
     test3()
     test4()
+    test5()
 
 
 def main():

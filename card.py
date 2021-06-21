@@ -101,27 +101,37 @@ class Card:
     def __repr__(self) -> str:
         return repr(self.name) + repr(self.pos)
 
-    def effect1(self, card) -> Tuple[SubState, int]:
+    def effect1(self, card) -> Tuple[SubState, int, int]:
         if self.name == CardName.dデステニードロー:
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
             assert card.pos == Position.HAND
             assert card.isDhero()
             card.pos = Position.GRAVEYARD
-            return SubState.Draw, 2
+            return SubState.Draw, 2, 0
         elif self.name == CardName.tトレードイン:
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
             assert card.pos == Position.HAND
             assert card.isLevel8()
             card.pos = Position.GRAVEYARD
-            return SubState.Draw, 2
+            return SubState.Draw, 2, 0
         elif self.name == CardName.aアームズホール:
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
             assert card.pos == Position.DECK
             card.pos = Position.GRAVEYARD
-            return SubState.ArmsHole, 0
+            return SubState.ArmsHole, 0, 0
+
+        elif self.name == CardName.h早すぎた埋葬:
+            self.pos = Position.MAGIC_FIELD
+            card.pos = Position.MONSTER_FIELD
+            return SubState.Free, 0, -800
+
+        elif self.name == CardName.s死者蘇生:
+            self.pos = Position.GRAVEYARD
+            card.pos = Position.MONSTER_FIELD
+            return SubState.Free, 0, 0
 
         assert False, "not implemented"
         return SubState.Free, 0
@@ -144,6 +154,13 @@ class Card:
     def isMagic(self) -> bool:
         v = self.name.value
         return v >= CardName.aアームズホール.value and v <= CardName.n成金ゴブリン.value
+
+    def isMonster(self) -> bool:
+        v = self.name.value
+        return v <= CardName.dディスクガイ.value
+
+    def isMonsterSSable(self) -> bool:
+        return self.isMonster() and self.name != CardName.dドグマガイ
 
     def isEquipSpell(self) -> bool:
         return self.name in [CardName.fフェニブレ, CardName.DDR, CardName.h早すぎた埋葬]

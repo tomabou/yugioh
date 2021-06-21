@@ -52,6 +52,13 @@ class GameState:
         b = len(self.getCardByPos(Position.MAGIC_SET))
         return a + b
 
+    def getSSMonster(self) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.isMonsterSSable():
+                ret.append(c)
+        return ret
+
     def getEquipSpell(self) -> List[Card]:
         ret = []
         for c in self.deck:
@@ -104,9 +111,10 @@ class GameState:
             self.effect1(card, target)
 
     def effect1(self, card: Card, target: Card) -> None:
-        sub, num = card.effect1(target)
+        sub, num, lifedif = card.effect1(target)
         self.subState = sub
         self.drawNum = num
+        self.life += lifedif
 
     def effect0(self, card: Card) -> None:
         sub, num = card.effect0()
@@ -134,6 +142,11 @@ class GameState:
         elif card.name == CardName.aアームズホール:
             target = random.choice(self.getCardByPos(Position.DECK))
             ret = [target]
+        elif card.name == CardName.s死者蘇生 or card.name == CardName.h早すぎた埋葬:
+            cs = self.getSSMonster()
+            return filter(lambda c: c.pos == Position.GRAVEYARD, cs)
+
+        #assert False, "not implemented"
         return ret
 
     def canEffectMagic(self, card) -> bool:
@@ -146,6 +159,8 @@ class GameState:
     def canEffect(self, card) -> bool:
         if self.subState != SubState.Free:
             return False
+
+        # 魔法カードだったら一律に手札にあるか、魔法カードゾーンが空いているかチェック
         if card.isMagic():
             if not self.canEffectMagic(card):
                 return False
@@ -168,13 +183,17 @@ class GameState:
             return any(map(
                 lambda c: (c.pos in [Position.DECK, Position.GRAVEYARD]),
                 self.getEquipSpell()))
+        elif card.name == CardName.s死者蘇生 or card.name == CardName.h早すぎた埋葬:
+            cs = self.getSSMonster()
+            for c in cs:
+                if c.pos == Position.GRAVEYARD:
+                    True
+            return False
 
         assert False, "encont not implemented card"
 
     def canSet(self, card) -> bool:
-        fieldCards = self.getCardByPos(Position.MAGIC_SET)
-        assert len(fieldCards) <= 5
-        if len(fieldCards) == 5:
+        if self.getMagicFieldNum() >= 5:
             return False
         if card.pos != Position.HAND:
             return False

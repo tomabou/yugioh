@@ -1,3 +1,4 @@
+from __future__ import annotations
 from substate import SubState
 from enum import Enum
 from typing import Tuple
@@ -101,7 +102,7 @@ class Card:
     def __repr__(self) -> str:
         return repr(self.name) + repr(self.pos)
 
-    def effect1(self, card) -> Tuple[SubState, int, int]:
+    def effect1(self, card: Card) -> Tuple[SubState, int, int]:
         if self.name == CardName.dデステニードロー:
             assert self.pos == Position.HAND or Position.MAGIC_SET
             self.pos = Position.GRAVEYARD
@@ -133,7 +134,12 @@ class Card:
             card.pos = Position.MONSTER_FIELD
             return SubState.Free, 0, 0
 
-        assert False, "not implemented"
+        elif self.name == CardName.z増援:
+            self.pos = Position.GRAVEYARD
+            card.pos = Position.HAND
+            return SubState.Free, 0, 0
+
+        assert False, "not implemented {}".format(self.name)
         return SubState.Free, 0
 
     def effect0(self) -> Tuple[SubState, int]:

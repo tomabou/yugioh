@@ -95,6 +95,19 @@ def test6():
     print("run hayamai test")
 
 
+def test7():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.z増援)
+    a.pos = Position.HAND
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD
+    assert len(gameState.getCardByPos(Position.HAND)) == 1
+
+    print("run zoen test")
+
+
 def test():
     test1()
     test2()
@@ -102,6 +115,7 @@ def test():
     test4()
     test5()
     test6()
+    test7()
 
 
 def main():

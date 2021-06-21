@@ -59,6 +59,13 @@ class GameState:
                 ret.append(c)
         return ret
 
+    def getSenshis(self) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.name == CardName.eエアーマン or c.name == CardName.dディスクガイ:
+                ret.append(c)
+        return ret
+
     def getEquipSpell(self) -> List[Card]:
         ret = []
         for c in self.deck:
@@ -145,6 +152,9 @@ class GameState:
         elif card.name == CardName.s死者蘇生 or card.name == CardName.h早すぎた埋葬:
             cs = self.getSSMonster()
             return filter(lambda c: c.pos == Position.GRAVEYARD, cs)
+        elif card.name == CardName.z増援:
+            cs = self.getSenshis()
+            return filter(lambda c: c.pos == Position.DECK, cs)
 
         # assert False, "not implemented"
         return ret
@@ -187,6 +197,12 @@ class GameState:
             cs = self.getSSMonster()
             for c in cs:
                 if c.pos == Position.GRAVEYARD:
+                    return True
+            return False
+        elif card.name == CardName.z増援:
+            cs = self.getSenshis()
+            for c in cs:
+                if c.pos == Position.DECK:
                     return True
             return False
 

@@ -104,6 +104,15 @@ class Card:
     def __repr__(self) -> str:
         return repr(self.name) + repr(self.pos)
 
+    def effect2(self,
+                target1: Card, target2: Card) -> Tuple[SubState, int, int]:
+        if self.name == CardName.fフェニブレ:
+            target1.pos = Position.BANISHED
+            target2.pos = Position.BANISHED
+            self.pos = Position.HAND
+            return SubState.Free, 0, 0
+        assert False, "not implement"
+
     def effect1(self, card: Card) -> Tuple[SubState, int, int]:
         if self.name == CardName.dデステニードロー:
             assert self.pos == Position.HAND or Position.MAGIC_SET

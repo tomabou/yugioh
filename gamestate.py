@@ -2,7 +2,7 @@ from typing import List, Sequence, Iterable, Tuple
 from substate import SubState
 from card import Card, CardName, Deck, name2id, Position, dummyCard
 from action import (Action, DrawAction, EffectAction1,
-                    EffectAction0, ArmsHoleAction2)
+                    EffectAction0, ArmsHoleAction2, EffectAction2)
 
 import random
 
@@ -79,7 +79,9 @@ class GameState:
         elif self.subState == SubState.Free:
             acs: List[Action] = []
             hands = self.getCardByPos(Position.HAND)
-            for c in hands:
+            phoenix = self.getCardsbyName(CardName.fフェニブレ)
+
+            for c in (hands+phoenix):
                 flag = self.canEffect(c)
                 if not flag:
                     continue
@@ -90,6 +92,10 @@ class GameState:
                     targets = self.getTarget1(c)
                     for tag in targets:
                         acs.append(EffectAction1(c, tag))
+                elif target_num == 2:
+                    target12s = self.getTarget2(c)
+                    for t1, t2 in target12s:
+                        acs.append(EffectAction2(c, t1, t2))
 
             return acs
         elif self.subState == SubState.ArmsHole:
@@ -116,9 +122,17 @@ class GameState:
             card = action.card
             target = action.target
             self.effect1(card, target)
+        elif type(action) == EffectAction2:
+            action.card.effect2(action.target1, action.target2)
 
     def effect1(self, card: Card, target: Card) -> None:
         sub, num, lifedif = card.effect1(target)
+        self.subState = sub
+        self.drawNum = num
+        self.life += lifedif
+
+    def effect2(self, card: Card, target1: Card, target2: Card) -> None:
+        sub, num, lifedif = card.effect2(target1, target2)
         self.subState = sub
         self.drawNum = num
         self.life += lifedif
@@ -192,12 +206,12 @@ class GameState:
             return False
         return True
 
-    def canEffect(self, card) -> bool:
+    def canEffect(self, card: Card) -> bool:
         if self.subState != SubState.Free:
             return False
 
         # 魔法カードだったら一律に手札にあるか、魔法カードゾーンが空いているかチェック
-        if card.isMagic():
+        if card.isMagic() and card.name != CardName.fフェニブレ:
             if not self.canEffectMagic(card):
                 return False
 
@@ -231,6 +245,14 @@ class GameState:
                 if c.pos == Position.DECK:
                     return True
             return False
+        elif card.name == CardName.fフェニブレ:
+            if card.pos != Position.GRAVEYARD:
+                return False
+            cs = self.getCardByPos(Position.GRAVEYARD)
+            tmp = list(filter(lambda c: c.isWarrior(), cs))
+            if len(tmp) < 2:
+                return False
+            return True
 
         assert False, "encont not implemented card"
 
@@ -257,3 +279,10 @@ class GameState:
             if c.name == name:
                 return c
         assert False, "getCardERROR"
+
+    def getCardsbyName(self, name) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.name == name:
+                ret.append(c)
+        return ret

@@ -117,6 +117,26 @@ def test8():
     print("run select2 test")
 
 
+def test9():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.fフェニブレ)
+    a.pos = Position.GRAVEYARD
+    assert not gameState.canEffect(a)
+    b = gameState.getCardbyName(CardName.dディスクガイ)
+    b.pos = Position.GRAVEYARD
+    assert not gameState.canEffect(a)
+    c = gameState.getCardbyName(CardName.k光帝クライス)
+    c.pos = Position.GRAVEYARD
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert a.pos == Position.HAND
+    assert b.pos == Position.BANISHED
+    assert c.pos == Position.BANISHED
+
+    print("run feni test")
+
+
 def test():
     test1()
     test2()
@@ -126,6 +146,7 @@ def test():
     test6()
     test7()
     test8()
+    test9()
 
 
 def main():

@@ -79,12 +79,29 @@ def test5():
     print("run sosei test")
 
 
+def test6():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.h早すぎた埋葬)
+    a.pos = Position.HAND
+    b = gameState.getCardbyName(CardName.dディスクガイ)
+    b.pos = Position.GRAVEYARD
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    assert len(acs) == 1
+    gameState.runAction(acs[0])
+    assert a.pos == Position.MAGIC_FIELD
+    assert b.pos == Position.MONSTER_FIELD
+
+    print("run hayamai test")
+
+
 def test():
     test1()
     test2()
     test3()
     test4()
     test5()
+    test6()
 
 
 def main():

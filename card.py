@@ -29,6 +29,7 @@ class CardName(Enum):
     z増援 = 21
     n成金ゴブリン = 22
     mマジカルエクスプロージョン = 23
+    dummy = 99
 
 
 Deck = {
@@ -165,6 +166,10 @@ class Card:
         v = self.name.value
         return v <= CardName.dディスクガイ.value
 
+    def isWarrior(self) -> bool:
+        return self.name in [CardName.dディスクガイ, CardName.eエアーマン,
+                             CardName.k光帝クライス, CardName.dドグマガイ]
+
     def isMonsterSSable(self) -> bool:
         return self.isMonster() and self.name != CardName.dドグマガイ
 
@@ -179,3 +184,6 @@ class Card:
                            CardName.t手札抹殺, CardName.s死者転生]:
             return 2
         return 1
+
+
+dummyCard = Card(99, 0)

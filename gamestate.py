@@ -1,6 +1,6 @@
-from typing import List, Sequence, Iterable
+from typing import List, Sequence, Iterable, Tuple
 from substate import SubState
-from card import Card, CardName, Deck, name2id, Position
+from card import Card, CardName, Deck, name2id, Position, dummyCard
 from action import (Action, DrawAction, EffectAction1,
                     EffectAction0, ArmsHoleAction2)
 
@@ -157,6 +157,28 @@ class GameState:
             return filter(lambda c: c.pos == Position.DECK, cs)
 
         # assert False, "not implemented"
+        return ret
+
+    def getTarget2(self, card) -> Iterable[Tuple[Card, Card]]:
+        ret = []
+        if card.name == CardName.fフェニブレ:
+            cs = self.getCardByPos(Position.GRAVEYARD)
+            tmp = list(filter(lambda c: c.isWarrior(), cs))
+            if len(tmp) < 1:
+                return []
+            a = dummyCard
+            b = dummyCard
+            for i in range(len(tmp)):
+                if a.name == tmp[i].name:
+                    continue
+                for j in range(i+1, len(tmp)):
+                    if b.name == tmp[j].name:
+                        continue
+                    a = tmp[i]
+                    b = tmp[j]
+                    ret.append((a, b))
+            return ret
+
         return ret
 
     def canEffectMagic(self, card) -> bool:

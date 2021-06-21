@@ -108,6 +108,15 @@ def test7():
     print("run zoen test")
 
 
+def test8():
+    gameState = GameState(Deck)
+    cs = gameState.getEquipSpell()
+    tmp = gameState.select2Util(cs)
+    assert len(tmp) == 5
+
+    print("run select2 test")
+
+
 def test():
     test1()
     test2()
@@ -116,6 +125,7 @@ def test():
     test5()
     test6()
     test7()
+    test8()
 
 
 def main():

@@ -57,6 +57,7 @@ Deck = {
     CardName.n成金ゴブリン: 2,
     CardName.m魔法再生: 0,
     CardName.mマジカルエクスプロージョン: 2,
+    CardName.dummy: 0,
 }
 
 

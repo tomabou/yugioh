@@ -159,25 +159,29 @@ class GameState:
         # assert False, "not implemented"
         return ret
 
-    def getTarget2(self, card) -> Iterable[Tuple[Card, Card]]:
+    def select2Util(self, cs: List[Card]) -> Iterable[Tuple[Card, Card]]:
         ret = []
+        if len(cs) < 1:
+            return []
+        a = dummyCard
+        b = dummyCard
+        for i in range(len(cs)):
+            if a.name == cs[i].name:
+                continue
+            for j in range(i+1, len(cs)):
+                if b.name == cs[j].name:
+                    continue
+                a = cs[i]
+                b = cs[j]
+                ret.append((a, b))
+        return ret
+
+    def getTarget2(self, card) -> Iterable[Tuple[Card, Card]]:
+        ret: List[Tuple[Card, Card]] = []
         if card.name == CardName.fフェニブレ:
             cs = self.getCardByPos(Position.GRAVEYARD)
             tmp = list(filter(lambda c: c.isWarrior(), cs))
-            if len(tmp) < 1:
-                return []
-            a = dummyCard
-            b = dummyCard
-            for i in range(len(tmp)):
-                if a.name == tmp[i].name:
-                    continue
-                for j in range(i+1, len(tmp)):
-                    if b.name == tmp[j].name:
-                        continue
-                    a = tmp[i]
-                    b = tmp[j]
-                    ret.append((a, b))
-            return ret
+            return self.select2Util(tmp)
 
         return ret
 

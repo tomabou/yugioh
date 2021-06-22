@@ -116,6 +116,16 @@ class Card:
             target2.pos = Position.MONSTER_FIELD
             self.pos = Position.MAGIC_FIELD
             return SubState.Free, 0, 0
+        elif self.name == CardName.s死者転生:
+            target1.pos = Position.GRAVEYARD
+            target2.pos = Position.HAND
+            self.pos = Position.GRAVEYARD
+            return SubState.Free, 0, 0
+        elif self.name == CardName.t手札断殺:
+            target1.pos = Position.GRAVEYARD
+            target2.pos = Position.GRAVEYARD
+            self.pos = Position.GRAVEYARD
+            return SubState.Draw, 2, 0
         assert False, "not implement"
 
     def effect1(self, card: Card) -> Tuple[SubState, int, int]:
@@ -196,7 +206,7 @@ class Card:
                          CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン]:
             return 0
         elif self.name in [CardName.fフェニブレ, CardName.DDR,
-                           CardName.t手札抹殺, CardName.s死者転生]:
+                           CardName.t手札断殺, CardName.s死者転生]:
             return 2
         return 1
 

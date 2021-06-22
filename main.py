@@ -1,3 +1,4 @@
+from substate import SubState
 from gamestate import GameState
 from card import Deck, CardName, Position, checkDeck
 
@@ -157,6 +158,51 @@ def test10():
     print("run DDR test")
 
 
+def test11():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.s死者転生)
+    a.pos = Position.HAND
+    assert not gameState.canEffect(a)
+    b = gameState.getCardbyName(CardName.s死者蘇生)
+    b.pos = Position.HAND
+    assert not gameState.canEffect(a)
+    c = gameState.getCardbyName(CardName.k光帝クライス)
+    c.pos = Position.GRAVEYARD
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD, "pos is {}".format(a.pos)
+    assert b.pos == Position.GRAVEYARD
+    assert c.pos == Position.HAND
+
+    print("run tensei test")
+
+
+def test12():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.t手札断殺)
+    a.pos = Position.HAND
+    assert not gameState.canEffect(a)
+    b = gameState.getCardbyName(CardName.s死者蘇生)
+    b.pos = Position.HAND
+    assert not gameState.canEffect(a)
+    c = gameState.getCardbyName(CardName.DDR)
+    c.pos = Position.HAND
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert gameState.subState == SubState.Draw, "state is {}".format(
+        gameState.subState)
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD, "pos is {}".format(a.pos)
+    assert b.pos == Position.GRAVEYARD
+    assert c.pos == Position.GRAVEYARD
+    assert len(gameState.getCardByPos(Position.HAND)) == 2
+
+    print("run dansatsu test")
+
+
 def test():
     test1()
     test2()
@@ -168,6 +214,8 @@ def test():
     test8()
     test9()
     test10()
+    test11()
+    test12()
 
 
 def main():

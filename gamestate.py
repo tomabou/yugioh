@@ -123,7 +123,7 @@ class GameState:
             target = action.target
             self.effect1(card, target)
         elif type(action) == EffectAction2:
-            action.card.effect2(action.target1, action.target2)
+            self.effect2(action.card, action.target1, action.target2)
 
     def effect1(self, card: Card, target: Card) -> None:
         sub, num, lifedif = card.effect1(target)
@@ -208,11 +208,28 @@ class GameState:
             cs = self.getCardByPos(Position.GRAVEYARD)
             tmp = list(filter(lambda c: c.isWarrior(), cs))
             return self.select2Util(tmp)
-        if card.name == CardName.DDR:
+        elif card.name == CardName.t手札断殺:
+            hands = self.getCardByPos(Position.HAND)
+            tmp = list(filter(lambda x: x != card, hands))
+            return self.select2Util(tmp)
+        elif card.name == CardName.DDR:
             hands = self.getCardByPos(Position.HAND)
             tmp = list(filter(lambda x: x != card, hands))
             handcosts = self.select1Util(tmp)
-            target2 = self.select1Util(self.getCardByPos(Position.BANISHED))
+            banishmonster = list(filter(lambda x: x.isMonsterSSable(),
+                                        self.getCardByPos(Position.BANISHED)))
+            target2 = self.select1Util(banishmonster)
+            for a in handcosts:
+                for b in target2:
+                    ret.append((a, b))
+            return ret
+        elif card.name == CardName.s死者転生:
+            hands = self.getCardByPos(Position.HAND)
+            tmp = list(filter(lambda x: x != card, hands))
+            handcosts = self.select1Util(tmp)
+            gravemonster = list(filter(lambda x: x.isMonster(),
+                                       self.getCardByPos(Position.GRAVEYARD)))
+            target2 = self.select1Util(gravemonster)
             for a in handcosts:
                 for b in target2:
                     ret.append((a, b))
@@ -285,10 +302,21 @@ class GameState:
         elif card.name == CardName.DDR:
             if not self.canHandCost(card, 1):
                 return False
-            bs = self.getCardByPos(Position.BANISHED)
-            if len(bs) == 0:
+            cs = self.getSSMonster()
+            for c in cs:
+                if c.pos == Position.BANISHED:
+                    return True
+            return False
+        elif card.name == CardName.t手札断殺:
+            return self.canHandCost(card, 2)
+        elif card.name == CardName.s死者転生:
+            if not self.canHandCost(card, 1):
                 return False
-            return True
+            cs = self.getCardByPos(Position.GRAVEYARD)
+            for c in cs:
+                if c.isMonster():
+                    return True
+            return False
 
         assert False, "encont not implemented card{}".format(card)
 

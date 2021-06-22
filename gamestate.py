@@ -175,7 +175,7 @@ class GameState:
 
     def select2Util(self, cs: List[Card]) -> Iterable[Tuple[Card, Card]]:
         ret = []
-        if len(cs) < 1:
+        if len(cs) < 2:
             return []
         a = dummyCard
         b = dummyCard
@@ -190,12 +190,33 @@ class GameState:
                 ret.append((a, b))
         return ret
 
+    def select1Util(self, cs: List[Card]) -> Iterable[Card]:
+        ret = []
+        if len(cs) < 1:
+            return []
+        a = dummyCard
+        for i in range(len(cs)):
+            if a.name == cs[i].name:
+                continue
+            a = cs[i]
+            ret.append(a)
+        return ret
+
     def getTarget2(self, card) -> Iterable[Tuple[Card, Card]]:
         ret: List[Tuple[Card, Card]] = []
         if card.name == CardName.fフェニブレ:
             cs = self.getCardByPos(Position.GRAVEYARD)
             tmp = list(filter(lambda c: c.isWarrior(), cs))
             return self.select2Util(tmp)
+        if card.name == CardName.DDR:
+            hands = self.getCardByPos(Position.HAND)
+            tmp = list(filter(lambda x: x != card, hands))
+            handcosts = self.select1Util(tmp)
+            target2 = self.select1Util(self.getCardByPos(Position.BANISHED))
+            for a in handcosts:
+                for b in target2:
+                    ret.append((a, b))
+            return ret
 
         return ret
 
@@ -205,6 +226,14 @@ class GameState:
         if card.pos == Position.HAND and self.getMagicFieldNum() >= 5:
             return False
         return True
+
+    def canHandCost(self, card: Card, num: int) -> bool:
+        hands = self.getCardByPos(Position.HAND)
+        count = 0
+        for h in hands:
+            if h != card:
+                count += 1
+        return count >= num
 
     def canEffect(self, card: Card) -> bool:
         if self.subState != SubState.Free:
@@ -253,8 +282,15 @@ class GameState:
             if len(tmp) < 2:
                 return False
             return True
+        elif card.name == CardName.DDR:
+            if not self.canHandCost(card, 1):
+                return False
+            bs = self.getCardByPos(Position.BANISHED)
+            if len(bs) == 0:
+                return False
+            return True
 
-        assert False, "encont not implemented card"
+        assert False, "encont not implemented card{}".format(card)
 
     def canSet(self, card) -> bool:
         if self.getMagicFieldNum() >= 5:

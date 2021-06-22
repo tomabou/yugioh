@@ -111,6 +111,11 @@ class Card:
             target2.pos = Position.BANISHED
             self.pos = Position.HAND
             return SubState.Free, 0, 0
+        elif self.name == CardName.DDR:
+            target1.pos = Position.GRAVEYARD
+            target2.pos = Position.MONSTER_FIELD
+            self.pos = Position.MAGIC_FIELD
+            return SubState.Free, 0, 0
         assert False, "not implement"
 
     def effect1(self, card: Card) -> Tuple[SubState, int, int]:

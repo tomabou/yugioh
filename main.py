@@ -137,6 +137,26 @@ def test9():
     print("run feni test")
 
 
+def test10():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.DDR)
+    a.pos = Position.HAND
+    assert not gameState.canEffect(a)
+    b = gameState.getCardbyName(CardName.s死者蘇生)
+    b.pos = Position.HAND
+    assert not gameState.canEffect(a)
+    c = gameState.getCardbyName(CardName.k光帝クライス)
+    c.pos = Position.BANISHED
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    gameState.runAction(acs[0])
+    assert a.pos == Position.MAGIC_FIELD, "pos is {}".format(a.pos)
+    assert b.pos == Position.GRAVEYARD
+    assert c.pos == Position.MONSTER_FIELD
+
+    print("run DDR test")
+
+
 def test():
     test1()
     test2()
@@ -147,6 +167,7 @@ def test():
     test7()
     test8()
     test9()
+    test10()
 
 
 def main():

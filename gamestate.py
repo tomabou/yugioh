@@ -2,7 +2,8 @@ from typing import List, Sequence, Iterable, Tuple
 from substate import SubState
 from card import Card, CardName, Deck, name2id, Position, dummyCard
 from action import (Action, DrawAction, EffectAction1,
-                    EffectAction0, ArmsHoleAction2, EffectAction2)
+                    EffectAction0, ArmsHoleAction2, EffectAction2,
+                    SummonAction0, SummonAction1, SummonAction2)
 
 import random
 
@@ -97,6 +98,21 @@ class GameState:
                     for t1, t2 in target12s:
                         acs.append(EffectAction2(c, t1, t2))
 
+            for c in hands:
+                if self.hasNormalSummon:
+                    break
+                sacNum = c.numOfSacrifice()
+                if sacNum == 0:
+                    acs.append(SummonAction0(c))
+                elif sacNum == 1:
+                    sacs = self.getSac1()
+                    for sac in sacs:
+                        acs.append(SummonAction1(c, sac))
+                elif sacNum == 2:
+                    sacabs = self.getSac2()
+                    for sac1, sac2 in sacabs:
+                        acs.append(SummonAction2(c, sac1, sac2))
+
             return acs
         elif self.subState == SubState.ArmsHole:
             acs = []
@@ -141,6 +157,12 @@ class GameState:
         sub, num = card.effect0()
         self.subState = sub
         self.drawNum = num
+
+    def getSac1(self) -> Iterable[Card]:
+        pass
+
+    def getSac2(self) -> Iterable[Tuple[Card, Card]]:
+        pass
 
     def getTarget1(self, card) -> Iterable[Card]:
         ret = []

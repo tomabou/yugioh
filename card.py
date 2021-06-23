@@ -210,5 +210,18 @@ class Card:
             return 2
         return 1
 
+    # 召喚できないなら-1を返す
+
+    def numOfSacrifice(self) -> int:
+        if self.name in [CardName.dディスクガイ,
+                         CardName.sサイバーヴァリー, CardName.eエアーマン]:
+            return 0
+        elif self.name == CardName.k光帝クライス:
+            return 1
+        elif self.name == CardName.k混沌の黒魔術師:
+            return 2
+        else:
+            return -1
+
 
 dummyCard = Card(99, 0)

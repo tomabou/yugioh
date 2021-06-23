@@ -203,6 +203,17 @@ def test12():
     print("run dansatsu test")
 
 
+def test13():
+    gs = GameState(Deck)
+    a = gs.getCardbyName(CardName.dディスクガイ)
+    a.pos = Position.HAND
+    acs = gs.vaildActions()
+    assert len(acs) == 1, "{}".format(len(acs))
+    gs.runAction(acs[0])
+    assert a.pos == Position.MONSTER_FIELD
+    print("disc summon test")
+
+
 def test():
     test1()
     test2()
@@ -216,6 +227,7 @@ def test():
     test10()
     test11()
     test12()
+    test13()
 
 
 def main():

@@ -140,6 +140,24 @@ class GameState:
             self.effect1(card, target)
         elif type(action) == EffectAction2:
             self.effect2(action.card, action.target1, action.target2)
+        elif type(action) == SummonAction0:
+            self.summon0(action.card)
+        elif type(action) == SummonAction1:
+            self.summon1(action.card, action.target)
+        elif type(action) == SummonAction2:
+            self.summon2(action.card, action.target1, action.target2)
+
+    def summon0(self, card):
+        card.pos = Position.MONSTER_FIELD
+
+    def summon1(self, card, tag):
+        card.pos = Position.MONSTER_FIELD
+        tag.pos = Position.GRAVEYARD
+
+    def summon2(self, card, tag1, tag2):
+        card.pos = Position.MONSTER_FIELD
+        tag1.pos = Position.GRAVEYARD
+        tag2.pos = Position.GRAVEYARD
 
     def effect1(self, card: Card, target: Card) -> None:
         sub, num, lifedif = card.effect1(target)
@@ -340,7 +358,8 @@ class GameState:
                     return True
             return False
 
-        assert False, "encont not implemented card{}".format(card)
+        return False
+        #assert False, "encont not implemented card{}".format(card)
 
     def canSet(self, card) -> bool:
         if self.getMagicFieldNum() >= 5:

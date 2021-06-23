@@ -236,6 +236,23 @@ def test14():
     print("kon summon test")
 
 
+def test15():
+    gs = GameState(Deck)
+    b = gs.getCardbyName(CardName.k光帝クライス)
+    b.pos = Position.HAND
+    acs = gs.vaildActions()
+    assert len(acs) == 0, "{}".format(len(acs))
+    c = gs.getCardbyName(CardName.eエアーマン)
+    c.pos = Position.MONSTER_FIELD
+    acs = gs.vaildActions()
+    assert len(acs) == 1, "{}".format(len(acs))
+
+    gs.runAction(acs[0])
+    assert b.pos == Position.MONSTER_FIELD
+    assert c.pos == Position.GRAVEYARD
+    print("kura summon test")
+
+
 def test():
     test1()
     test2()
@@ -251,6 +268,7 @@ def test():
     test12()
     test13()
     test14()
+    test15()
 
 
 def main():

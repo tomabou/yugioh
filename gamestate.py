@@ -177,10 +177,12 @@ class GameState:
         self.drawNum = num
 
     def getSac1(self) -> Iterable[Card]:
-        pass
+        mons = self.getCardByPos(Position.MONSTER_FIELD)
+        return self.select1Util(mons)
 
     def getSac2(self) -> Iterable[Tuple[Card, Card]]:
-        pass
+        mons = self.getCardByPos(Position.MONSTER_FIELD)
+        return self.select2Util(mons)
 
     def getTarget1(self, card) -> Iterable[Card]:
         ret = []
@@ -359,7 +361,7 @@ class GameState:
             return False
 
         return False
-        #assert False, "encont not implemented card{}".format(card)
+        # assert False, "encont not implemented card{}".format(card)
 
     def canSet(self, card) -> bool:
         if self.getMagicFieldNum() >= 5:

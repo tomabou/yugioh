@@ -214,6 +214,28 @@ def test13():
     print("disc summon test")
 
 
+def test14():
+    gs = GameState(Deck)
+    a = gs.getCardbyName(CardName.k混沌の黒魔術師)
+    a.pos = Position.HAND
+    acs = gs.vaildActions()
+    assert len(acs) == 0, "{}".format(len(acs))
+    b = gs.getCardbyName(CardName.eエアーマン)
+    b.pos = Position.MONSTER_FIELD
+    acs = gs.vaildActions()
+    assert len(acs) == 0, "{}".format(len(acs))
+    c = gs.getCardbyName(CardName.k光帝クライス)
+    c.pos = Position.MONSTER_FIELD
+    acs = gs.vaildActions()
+    assert len(acs) == 1, "{}".format(len(acs))
+
+    gs.runAction(acs[0])
+    assert a.pos == Position.MONSTER_FIELD
+    assert b.pos == Position.GRAVEYARD
+    assert c.pos == Position.GRAVEYARD
+    print("kon summon test")
+
+
 def test():
     test1()
     test2()
@@ -228,6 +250,7 @@ def test():
     test11()
     test12()
     test13()
+    test14()
 
 
 def main():

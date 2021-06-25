@@ -104,6 +104,16 @@ class Card:
     def __repr__(self) -> str:
         return repr(self.name) + repr(self.pos)
 
+    def SSutil(self, card) -> Tuple[SubState, int, int]:
+        if card.name == CardName.k混沌の黒魔術師:
+            return SubState.KonKuroSS, 0, 0
+        elif card.name == CardName.eエアーマン:
+            return SubState.AirManSS, 0, 0
+        elif card.name == CardName.k光帝クライス:
+            return SubState.KuraisuSS, 0, 0
+        else:
+            return SubState.Free, 0, 0
+
     def effect2(self,
                 target1: Card, target2: Card) -> Tuple[SubState, int, int]:
         if self.name == CardName.fフェニブレ:
@@ -115,7 +125,7 @@ class Card:
             target1.pos = Position.GRAVEYARD
             target2.pos = Position.MONSTER_FIELD
             self.pos = Position.MAGIC_FIELD
-            return SubState.Free, 0, 0
+            return self.SSutil(target2)
         elif self.name == CardName.s死者転生:
             target1.pos = Position.GRAVEYARD
             target2.pos = Position.HAND
@@ -153,12 +163,30 @@ class Card:
         elif self.name == CardName.h早すぎた埋葬:
             self.pos = Position.MAGIC_FIELD
             card.pos = Position.MONSTER_FIELD
-            return SubState.Free, 0, -800
+            if card.name == CardName.k混沌の黒魔術師:
+                return SubState.KonKuroSS, 0, -800
+            elif card.name == CardName.eエアーマン:
+                return SubState.AirManSS, 0, -800
+            elif card.name == CardName.k光帝クライス:
+                return SubState.KuraisuSS, 0, -800
+            elif card.name == CardName.dディスクガイ:
+                return SubState.Draw, 2, -800
+            else:
+                return SubState.Free, 0, -800
 
         elif self.name == CardName.s死者蘇生:
             self.pos = Position.GRAVEYARD
             card.pos = Position.MONSTER_FIELD
-            return SubState.Free, 0, 0
+            if card.name == CardName.k混沌の黒魔術師:
+                return SubState.KonKuroSS, 0, -800
+            elif card.name == CardName.eエアーマン:
+                return SubState.AirManSS, 0, -800
+            elif card.name == CardName.k光帝クライス:
+                return SubState.KuraisuSS, 0, -800
+            elif card.name == CardName.dディスクガイ:
+                return SubState.Draw, 2, -800
+            else:
+                return SubState.Free, 0, -800
 
         elif self.name == CardName.z増援:
             self.pos = Position.GRAVEYARD

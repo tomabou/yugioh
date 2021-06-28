@@ -240,6 +240,9 @@ class Card:
     def isMonsterSSable(self) -> bool:
         return self.isMonster() and self.name != CardName.dドグマガイ
 
+    def isMonsterNSable(self) -> bool:
+        return self.isMonsterSSable()
+
     def isEquipSpell(self) -> bool:
         return self.name in [CardName.fフェニブレ, CardName.DDR, CardName.h早すぎた埋葬]
 

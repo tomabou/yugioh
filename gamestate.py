@@ -417,6 +417,20 @@ class GameState:
                 if c.isMonster():
                     return True
             return False
+        elif card.name == CardName.n成金ゴブリン:
+            return True
+        elif card.name == CardName.m名推理:
+            cs = self.getCardByPos(Position.DECK)
+            for c in cs:
+                if c.isMonsterNSable():
+                    return True
+            return False
+        elif card.name == CardName.mモンスターゲート:
+            cs = self.getCardByPos(Position.DECK)
+            for c in cs:
+                if c.isMonsterNSable():
+                    return True
+            return False
 
         return False
         # assert False, "encont not implemented card{}".format(card)

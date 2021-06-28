@@ -1,3 +1,4 @@
+from action import DrawAction
 from substate import SubState
 from gamestate import GameState
 from card import Deck, CardName, Position, checkDeck
@@ -265,10 +266,31 @@ def test16():
     gameState.runAction(acs[0])
     assert a.pos == Position.GRAVEYARD
     assert b.pos == Position.MONSTER_FIELD
-    print(gameState.vaildActions())
-    print(gameState.subState)
+    assert len(gameState.vaildActions()) == 1
+    assert type(gameState.vaildActions()[0]) == DrawAction
 
-    print("run sosei test")
+    print("run disk sosei test")
+
+
+def test17():
+    gs = GameState(Deck)
+    b = gs.getCardbyName(CardName.k光帝クライス)
+    b.pos = Position.HAND
+    acs = gs.vaildActions()
+    assert len(acs) == 0, "{}".format(len(acs))
+    c = gs.getCardbyName(CardName.eエアーマン)
+    c.pos = Position.MONSTER_FIELD
+    acs = gs.vaildActions()
+    assert len(acs) == 1, "{}".format(len(acs))
+
+    gs.runAction(acs[0])
+    assert b.pos == Position.MONSTER_FIELD
+    assert c.pos == Position.GRAVEYARD
+    c.pos = Position.MONSTER_FIELD
+    assert gs.subState == SubState.KuraisuSS
+    assert len(gs.vaildActions()) == 3
+
+    print("run kuraisu test")
 
 
 def test():
@@ -288,6 +310,7 @@ def test():
     test14()
     test15()
     test16()
+    test17()
 
 
 def main():

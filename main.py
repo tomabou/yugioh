@@ -253,6 +253,24 @@ def test15():
     print("kura summon test")
 
 
+def test16():
+    gameState = GameState(Deck)
+    a = gameState.getCardbyName(CardName.s死者蘇生)
+    a.pos = Position.HAND
+    b = gameState.getCardbyName(CardName.dディスクガイ)
+    b.pos = Position.GRAVEYARD
+    assert gameState.canEffect(a)
+    acs = gameState.vaildActions()
+    assert len(acs) == 1
+    gameState.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD
+    assert b.pos == Position.MONSTER_FIELD
+    print(gameState.vaildActions())
+    print(gameState.subState)
+
+    print("run sosei test")
+
+
 def test():
     test1()
     test2()
@@ -269,6 +287,7 @@ def test():
     test13()
     test14()
     test15()
+    test16()
 
 
 def main():

@@ -136,6 +136,10 @@ class Card:
             target2.pos = Position.GRAVEYARD
             self.pos = Position.GRAVEYARD
             return SubState.Draw, 2, 0
+        elif self.name == CardName.k光帝クライス:
+            target1.pos = Position.GRAVEYARD
+            target2.pos = Position.GRAVEYARD
+            return SubState.Draw, 2, 0
         assert False, "not implement"
 
     def effect1(self, card: Card) -> Tuple[SubState, int, int]:
@@ -159,7 +163,6 @@ class Card:
             assert card.pos == Position.DECK
             card.pos = Position.GRAVEYARD
             return SubState.ArmsHole, 0, 0
-
         elif self.name == CardName.h早すぎた埋葬:
             self.pos = Position.MAGIC_FIELD
             card.pos = Position.MONSTER_FIELD
@@ -173,7 +176,6 @@ class Card:
                 return SubState.Draw, 2, -800
             else:
                 return SubState.Free, 0, -800
-
         elif self.name == CardName.s死者蘇生:
             self.pos = Position.GRAVEYARD
             card.pos = Position.MONSTER_FIELD
@@ -187,11 +189,23 @@ class Card:
                 return SubState.Draw, 2, -800
             else:
                 return SubState.Free, 0, -800
-
         elif self.name == CardName.z増援:
             self.pos = Position.GRAVEYARD
             card.pos = Position.HAND
             return SubState.Free, 0, 0
+        elif self.name == CardName.k光帝クライス:
+            card.pos = Position.GRAVEYARD
+            return SubState.Draw, 1, 0
+        elif self.name == CardName.sサイバーヴァリー:
+            self.pos = Position.BANISHED
+            card.pos = Position.BANISHED
+            return SubState.Draw, 2, 0
+        elif self.name == CardName.eエアーマン:
+            card.pos = Position.HAND
+            return SubState.Free, 0, 0
+        elif self.name == CardName.k混沌の黒魔術師:
+            card.pos = Position.HAND
+            return SubState.Free, 0, -2000
 
         assert False, "not implemented {}".format(self.name)
         return SubState.Free, 0

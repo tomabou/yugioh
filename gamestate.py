@@ -67,6 +67,13 @@ class GameState:
                 ret.append(c)
         return ret
 
+    def getHeros(self) -> List[Card]:
+        ret = []
+        for c in self.deck:
+            if c.name in [CardName.eエアーマン, CardName.dディスクガイ, CardName.dドグマガイ]:
+                ret.append(c)
+        return ret
+
     def getEquipSpell(self) -> List[Card]:
         ret = []
         for c in self.deck:
@@ -122,6 +129,31 @@ class GameState:
             for c in cards:
                 acs.append(ArmsHoleAction2(c))
             return acs
+        elif self.subState == SubState.AirManSS:
+            acs = []
+            c = self.getCardbyName(CardName.eエアーマン)
+            targets = self.getTarget1(c)
+            for t in targets:
+                acs.append(EffectAction1(c, t))
+            return acs
+        elif self.subState == SubState.KonKuroSS:
+            acs = []
+            c = self.getCardbyName(CardName.k混沌の黒魔術師)
+            targets = self.getTarget1(c)
+            for t in targets:
+                acs.append(EffectAction1(c, t))
+            return acs
+        elif self.subState == SubState.KuraisuSS:
+            acs = []
+            c = self.getCardbyName(CardName.k光帝クライス)
+            targets1 = self.getTarget1(c)
+            targets2 = self.getTarget2(c)
+            for t in targets1:
+                acs.append(EffectAction1(c, t))
+            for t1, t2 in targets2:
+                acs.append(EffectAction2(c, t1, t2))
+            return acs
+
         return []
 
     def runAction(self, action: Action) -> None:
@@ -147,17 +179,26 @@ class GameState:
         elif type(action) == SummonAction2:
             self.summon2(action.card, action.target1, action.target2)
 
-    def summon0(self, card):
+    def summon0(self, card: Card):
         card.pos = Position.MONSTER_FIELD
+
+        if card.name == CardName.eエアーマン:
+            self.subState = SubState.AirManSS
 
     def summon1(self, card, tag):
         card.pos = Position.MONSTER_FIELD
         tag.pos = Position.GRAVEYARD
 
+        if card.name == CardName.k光帝クライス:
+            self.subState = SubState.KuraisuSS
+
     def summon2(self, card, tag1, tag2):
         card.pos = Position.MONSTER_FIELD
         tag1.pos = Position.GRAVEYARD
         tag2.pos = Position.GRAVEYARD
+
+        if card.name == CardName.k混沌の黒魔術師:
+            self.subState = SubState.KonKuroSS
 
     def effect1(self, card: Card, target: Card) -> None:
         sub, num, lifedif = card.effect1(target)
@@ -184,7 +225,7 @@ class GameState:
         mons = self.getCardByPos(Position.MONSTER_FIELD)
         return self.select2Util(mons)
 
-    def getTarget1(self, card) -> Iterable[Card]:
+    def getTarget1(self, card: Card) -> Iterable[Card]:
         ret = []
         if card.name == CardName.dデステニードロー:
             if card.pos != Position.HAND and card.pos != Position.MAGIC_SET:
@@ -211,8 +252,22 @@ class GameState:
         elif card.name == CardName.z増援:
             cs = self.getSenshis()
             return filter(lambda c: c.pos == Position.DECK, cs)
-
-        # assert False, "not implemented"
+        elif card.name == CardName.k光帝クライス:
+            monsters = self.getCardByPos(Position.MONSTER_FIELD)
+            return self.select1Util(monsters)
+        elif card.name == CardName.sサイバーヴァリー:
+            monsters = list(filter(lambda x: x != card,
+                            self.getCardByPos(Position.MONSTER_FIELD)))
+            return self.select1Util(monsters)
+        elif card.name == CardName.eエアーマン:
+            hearos = self.getHeros()
+            targets = list(filter(lambda c: c.pos == Position.DECK, hearos))
+            return self.select1Util(targets)
+            # assert False, "not implemented"
+        elif card.name == CardName.k混沌の黒魔術師:
+            return self.select1Util(list(filter(
+                lambda c: c.isMagic(),
+                self.getCardByPos(Position.GRAVEYARD))))
         return ret
 
     def select2Util(self, cs: List[Card]) -> Iterable[Tuple[Card, Card]]:
@@ -276,6 +331,9 @@ class GameState:
                 for b in target2:
                     ret.append((a, b))
             return ret
+        elif card.name == CardName.k光帝クライス:
+            monsters = self.getCardByPos(Position.MONSTER_FIELD)
+            return self.select2Util(monsters)
 
         return ret
 

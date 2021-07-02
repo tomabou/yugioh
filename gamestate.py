@@ -20,6 +20,8 @@ class GameState:
                 deckpos += 1
         self.life: int = 8000
         self.hasNormalSummon: bool = False
+        self.cost1 = dummyCard
+        self.cost2 = dummyCard
 
     def __repr__(self):
         rep = ""
@@ -81,75 +83,90 @@ class GameState:
                 ret.append(c)
         return ret
 
+    def _validActionsFree(self) -> Sequence[Action]:
+        acs: List[Action] = []
+        hands = self.getCardByPos(Position.HAND)
+        phoenix = self.getCardsbyName(CardName.fフェニブレ)
+        for c in (hands+phoenix):
+            flag = self.canEffect(c)
+            if not flag:
+                continue
+            target_num = c.numOfEffectTarget()
+            if target_num == 0:
+                acs.append(EffectAction0(c))
+            elif target_num == 1:
+                targets = self.getTarget1(c)
+                for tag in targets:
+                    acs.append(EffectAction1(c, tag))
+            elif target_num == 2:
+                target12s = self.getTarget2(c)
+                for t1, t2 in target12s:
+                    acs.append(EffectAction2(c, t1, t2))
+        for c in hands:
+            if self.hasNormalSummon:
+                break
+            sacNum = c.numOfSacrifice()
+            if sacNum == 0:
+                acs.append(SummonAction0(c))
+            elif sacNum == 1:
+                sacs = self.getSac1()
+                for sac in sacs:
+                    acs.append(SummonAction1(c, sac))
+            elif sacNum == 2:
+                sacabs = self.getSac2()
+                for sac1, sac2 in sacabs:
+                    acs.append(SummonAction2(c, sac1, sac2))
+        return acs
+
+    def _validActionsArms(self) -> Sequence[Action]:
+        acs: List[Action] = []
+        cards = filter(
+            lambda c: (c.pos in [Position.DECK, Position.GRAVEYARD]),
+            self.getEquipSpell())
+        for c in cards:
+            acs.append(ArmsHoleAction2(c))
+        return acs
+
+    def _validActionsAirMan(self) -> Sequence[Action]:
+        acs: List[Action] = []
+        c = self.getCardbyName(CardName.eエアーマン)
+        targets = self.getTarget1(c)
+        for t in targets:
+            acs.append(EffectAction1(c, t))
+        return acs
+
+    def _validActionsKonKuro(self) -> Sequence[Action]:
+        acs: List[Action] = []
+        c = self.getCardbyName(CardName.k混沌の黒魔術師)
+        targets = self.getTarget1(c)
+        for t in targets:
+            acs.append(EffectAction1(c, t))
+        return acs
+
+    def _validActionsKuraisu(self) -> Sequence[Action]:
+        acs: List[Action] = []
+        c = self.getCardbyName(CardName.k光帝クライス)
+        targets1 = self.getTarget1(c)
+        targets2 = self.getTarget2(c)
+        for t in targets1:
+            acs.append(EffectAction1(c, t))
+        for t1, t2 in targets2:
+            acs.append(EffectAction2(c, t1, t2))
+        return acs
+
     def vaildActions(self) -> Sequence[Action]:
         if self.subState == SubState.Draw:
             return [DrawAction(self.drawNum)]
         elif self.subState == SubState.Free:
-            acs: List[Action] = []
-            hands = self.getCardByPos(Position.HAND)
-            phoenix = self.getCardsbyName(CardName.fフェニブレ)
-            for c in (hands+phoenix):
-                flag = self.canEffect(c)
-                if not flag:
-                    continue
-                target_num = c.numOfEffectTarget()
-                if target_num == 0:
-                    acs.append(EffectAction0(c))
-                elif target_num == 1:
-                    targets = self.getTarget1(c)
-                    for tag in targets:
-                        acs.append(EffectAction1(c, tag))
-                elif target_num == 2:
-                    target12s = self.getTarget2(c)
-                    for t1, t2 in target12s:
-                        acs.append(EffectAction2(c, t1, t2))
-            for c in hands:
-                if self.hasNormalSummon:
-                    break
-                sacNum = c.numOfSacrifice()
-                if sacNum == 0:
-                    acs.append(SummonAction0(c))
-                elif sacNum == 1:
-                    sacs = self.getSac1()
-                    for sac in sacs:
-                        acs.append(SummonAction1(c, sac))
-                elif sacNum == 2:
-                    sacabs = self.getSac2()
-                    for sac1, sac2 in sacabs:
-                        acs.append(SummonAction2(c, sac1, sac2))
-            return acs
+            return self._validActionsFree()
         elif self.subState == SubState.ArmsHole:
-            acs = []
-            cards = filter(
-                lambda c: (c.pos in [Position.DECK, Position.GRAVEYARD]),
-                self.getEquipSpell())
-            for c in cards:
-                acs.append(ArmsHoleAction2(c))
-            return acs
+            return self._validActionsArms()
         elif self.subState == SubState.AirManSS:
-            acs = []
-            c = self.getCardbyName(CardName.eエアーマン)
-            targets = self.getTarget1(c)
-            for t in targets:
-                acs.append(EffectAction1(c, t))
-            return acs
+            return self._validActionsAirMan()
         elif self.subState == SubState.KonKuroSS:
-            acs = []
-            c = self.getCardbyName(CardName.k混沌の黒魔術師)
-            targets = self.getTarget1(c)
-            for t in targets:
-                acs.append(EffectAction1(c, t))
-            return acs
+            return self._validActionsKonKuro()
         elif self.subState == SubState.KuraisuSS:
-            acs = []
-            c = self.getCardbyName(CardName.k光帝クライス)
-            targets1 = self.getTarget1(c)
-            targets2 = self.getTarget2(c)
-            for t in targets1:
-                acs.append(EffectAction1(c, t))
-            for t1, t2 in targets2:
-                acs.append(EffectAction2(c, t1, t2))
-            return acs
+            return self._validActionsKuraisu()
         return []
 
     def runAction(self, action: Action) -> None:

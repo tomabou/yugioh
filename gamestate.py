@@ -438,6 +438,14 @@ class GameState:
             deck = self.getCardByPos(Position.DECK)
             numHand = len(hand)-1 if card.pos == Position.HAND else len(hand)
             return numHand <= len(deck)
+        elif card.name == CardName.m魔法石の採掘:
+            if not self.canHandCost(card, 2):
+                return False
+            bs = self.getCardByPos(Position.GRAVEYARD)
+            for c in bs:
+                if c.isMagic():
+                    return True
+            return False
 
         return False
         # assert False, "encont not implemented card{}".format(card)

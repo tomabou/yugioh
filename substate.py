@@ -8,3 +8,4 @@ class SubState(Enum):
     AirManSS = 3
     KonKuroSS = 4
     KuraisuSS = 5
+    Mahouseki = 6

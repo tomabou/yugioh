@@ -46,6 +46,18 @@ class ArmsHoleAction2():
         return "arms hole {}".format(self.equip.name)
 
 
+class MahousekiAction():
+    def __init__(self, target: Card, cost1: Card, cost2: Card) -> None:
+        self.target = target
+        self.cost1 = cost1
+        self.cost2 = cost2
+
+    def __repr__(self) -> str:
+        return "Mahouseki {} {} {}".format(self.target.name,
+                                           self.cost1.name,
+                                           self.cost2.name)
+
+
 # エアーマン　ヴァリー　ディスクガイ
 class SummonAction0():
     def __init__(self, card) -> None:

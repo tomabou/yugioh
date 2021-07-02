@@ -88,7 +88,6 @@ class GameState:
             acs: List[Action] = []
             hands = self.getCardByPos(Position.HAND)
             phoenix = self.getCardsbyName(CardName.fフェニブレ)
-
             for c in (hands+phoenix):
                 flag = self.canEffect(c)
                 if not flag:
@@ -104,7 +103,6 @@ class GameState:
                     target12s = self.getTarget2(c)
                     for t1, t2 in target12s:
                         acs.append(EffectAction2(c, t1, t2))
-
             for c in hands:
                 if self.hasNormalSummon:
                     break
@@ -119,7 +117,6 @@ class GameState:
                     sacabs = self.getSac2()
                     for sac1, sac2 in sacabs:
                         acs.append(SummonAction2(c, sac1, sac2))
-
             return acs
         elif self.subState == SubState.ArmsHole:
             acs = []
@@ -153,23 +150,18 @@ class GameState:
             for t1, t2 in targets2:
                 acs.append(EffectAction2(c, t1, t2))
             return acs
-
         return []
 
     def runAction(self, action: Action) -> None:
         if type(action) == DrawAction:
             self.draw(action.num)
         elif type(action) == ArmsHoleAction2:
-            card = action.equip
-            assert card.pos in [Position.GRAVEYARD, Position.DECK]
-            card.pos = Position.HAND
+            assert action.equip.pos in [Position.GRAVEYARD, Position.DECK]
+            action.equip.pos = Position.HAND
         elif type(action) == EffectAction0:
-            card = action.card
-            self.effect0(card)
+            self.effect0(action.card)
         elif type(action) == EffectAction1:
-            card = action.card
-            target = action.target
-            self.effect1(card, target)
+            self.effect1(action.card, action.target)
         elif type(action) == EffectAction2:
             self.effect2(action.card, action.target1, action.target2)
         elif type(action) == SummonAction0:
@@ -181,14 +173,12 @@ class GameState:
 
     def summon0(self, card: Card):
         card.pos = Position.MONSTER_FIELD
-
         if card.name == CardName.eエアーマン:
             self.subState = SubState.AirManSS
 
     def summon1(self, card, tag):
         card.pos = Position.MONSTER_FIELD
         tag.pos = Position.GRAVEYARD
-
         if card.name == CardName.k光帝クライス:
             self.subState = SubState.KuraisuSS
 
@@ -196,7 +186,6 @@ class GameState:
         card.pos = Position.MONSTER_FIELD
         tag1.pos = Position.GRAVEYARD
         tag2.pos = Position.GRAVEYARD
-
         if card.name == CardName.k混沌の黒魔術師:
             self.subState = SubState.KonKuroSS
 
@@ -213,8 +202,21 @@ class GameState:
         self.life += lifedif
 
     def effect0(self, card: Card) -> None:
+        if card.name == CardName.t手札抹殺:
+            card.pos = Position.GRAVEYARD
+            self.effectMassatsu()
+            return
         sub, num = card.effect0()
         self.subState = sub
+        self.drawNum = num
+
+# 対象を取らないのでgameState objectの外に出せなかった
+    def effectMassatsu(self) -> None:
+        num = 0
+        for c in self.getCardByPos(Position.HAND):
+            num += 1
+            c.pos = Position.GRAVEYARD
+        self.subState = SubState.Draw
         self.drawNum = num
 
     def getSac1(self) -> Iterable[Card]:
@@ -431,6 +433,11 @@ class GameState:
                 if c.isMonsterNSable():
                     return True
             return False
+        elif card.name == CardName.t手札抹殺:
+            hand = self.getCardByPos(Position.HAND)
+            deck = self.getCardByPos(Position.DECK)
+            numHand = len(hand)-1 if card.pos == Position.HAND else len(hand)
+            return numHand <= len(deck)
 
         return False
         # assert False, "encont not implemented card{}".format(card)

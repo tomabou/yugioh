@@ -293,6 +293,24 @@ def test17():
     print("run kuraisu test")
 
 
+def test18():
+    gs = GameState(Deck)
+    a = gs.getCardbyName(CardName.t手札抹殺)
+    b = gs.getCardbyName(CardName.dドグマガイ)
+    c = gs.getCardbyName(CardName.k光帝クライス)
+    a.pos = Position.HAND
+    b.pos = Position.HAND
+    c.pos = Position.HAND
+    acs = gs.vaildActions()
+    assert len(acs) == 1
+    gs.runAction(acs[0])
+    assert a.pos == Position.GRAVEYARD
+    assert len(gs.getCardByPos(Position.GRAVEYARD)) == 3
+    assert gs.subState == SubState.Draw
+    assert gs.drawNum == 2
+    print("run massatsu test")
+
+
 def test():
     test1()
     test2()
@@ -311,6 +329,7 @@ def test():
     test15()
     test16()
     test17()
+    test18()
 
 
 def main():

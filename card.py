@@ -248,7 +248,8 @@ class Card:
 
     def numOfEffectTarget(self) -> int:
         if self.name in [CardName.dディスクガイ, CardName.m名推理,
-                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン]:
+                         CardName.n成金ゴブリン, CardName.mマジカルエクスプロージョン,
+                         CardName.t手札抹殺]:
             return 0
         elif self.name in [CardName.fフェニブレ, CardName.DDR,
                            CardName.t手札断殺, CardName.s死者転生]:

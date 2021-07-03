@@ -87,6 +87,7 @@ class Position(Enum):
     GRAVEYARD = 4
     BANISHED = 5
     MAGIC_SET = 6
+    TMP = 7
 
 
 class Card:
@@ -115,7 +116,8 @@ class Card:
             return SubState.Free, 0, 0
 
     def effect2(self,
-                target1: Card, target2: Card) -> Tuple[SubState, int, int]:
+                target1: Card, target2: Card) -> Tuple[SubState,
+                                                       int, int]:
         if self.name == CardName.fフェニブレ:
             target1.pos = Position.BANISHED
             target2.pos = Position.BANISHED
@@ -140,6 +142,11 @@ class Card:
             target1.pos = Position.GRAVEYARD
             target2.pos = Position.GRAVEYARD
             return SubState.Draw, 2, 0
+        elif self.name == CardName.m魔法石の採掘:
+            self.pos = Position.TMP
+            target1.pos = Position.TMP
+            target2.pos = Position.TMP
+            return SubState.Mahouseki, 0, 0
         assert False, "not implement"
 
     def effect1(self, card: Card) -> Tuple[SubState, int, int]:
@@ -210,6 +217,16 @@ class Card:
         assert False, "not implemented {}".format(self.name)
         return SubState.Free, 0
 
+    def effect3(self, t1: Card,
+                t2: Card, t3: Card) -> Tuple[SubState, int, int]:
+        if self.name == CardName.m魔法石の採掘:
+            self.pos = Position.GRAVEYARD
+            t1.pos = Position.GRAVEYARD
+            t2.pos = Position.GRAVEYARD
+            t3.pos = Position.HAND
+            return SubState.Free, 0, 0
+        assert False, "note implemented"
+
     def effect0(self) -> Tuple[SubState, int]:
 
         assert False, "not implemented"
@@ -252,7 +269,8 @@ class Card:
                          CardName.t手札抹殺]:
             return 0
         elif self.name in [CardName.fフェニブレ, CardName.DDR,
-                           CardName.t手札断殺, CardName.s死者転生]:
+                           CardName.t手札断殺, CardName.s死者転生,
+                           CardName.m魔法石の採掘]:
             return 2
         return 1
 

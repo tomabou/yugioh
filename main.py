@@ -311,6 +311,31 @@ def test18():
     print("run massatsu test")
 
 
+def test19():
+    gs = GameState(Deck)
+    x = gs.getCardbyName(CardName.m魔法石の採掘)
+    a = gs.getCardbyName(CardName.t手札抹殺)
+    b = gs.getCardbyName(CardName.dドグマガイ)
+    c = gs.getCardbyName(CardName.k光帝クライス)
+    x.pos = Position.HAND
+    a.pos = Position.GRAVEYARD
+    b.pos = Position.HAND
+    c.pos = Position.HAND
+    acs = gs.vaildActions()
+    assert len(acs) == 1
+    gs.runAction(acs[0])
+    assert gs.subState == SubState.Mahouseki
+    acs = gs.vaildActions()
+    assert len(acs) == 1
+    gs.runAction(acs[0])
+    assert gs.subState == SubState.Free
+    assert x.pos == Position.GRAVEYARD
+    assert a.pos == Position.HAND
+    assert b.pos == Position.GRAVEYARD
+    assert c.pos == Position.GRAVEYARD
+    print("run mahouseki test")
+
+
 def test():
     test1()
     test2()
@@ -330,6 +355,7 @@ def test():
     test16()
     test17()
     test18()
+    test19()
 
 
 def main():

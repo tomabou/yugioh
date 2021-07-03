@@ -47,15 +47,17 @@ class ArmsHoleAction2():
 
 
 class MahousekiAction():
-    def __init__(self, target: Card, cost1: Card, cost2: Card) -> None:
-        self.target = target
-        self.cost1 = cost1
-        self.cost2 = cost2
+    def __init__(self, card: Card, t1: Card,
+                 t2: Card, t3: Card) -> None:
+        self.card = card
+        self.t1 = t1
+        self.t2 = t2
+        self.t3 = t3
 
     def __repr__(self) -> str:
-        return "Mahouseki {} {} {}".format(self.target.name,
-                                           self.cost1.name,
-                                           self.cost2.name)
+        return "Mahouseki {} {} {}".format(self.t1.name,
+                                           self.t2.name,
+                                           self.t3.name)
 
 
 # エアーマン　ヴァリー　ディスクガイ
@@ -92,4 +94,5 @@ class SummonAction2():
 
 Action = Union[EffectAction0, EffectAction1,
                EffectAction2, DrawAction, ArmsHoleAction2,
-               SummonAction0, SummonAction1, SummonAction2]
+               SummonAction0, SummonAction1, SummonAction2,
+               MahousekiAction]

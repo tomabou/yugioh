@@ -1,8 +1,10 @@
 from typing import List, Sequence, Iterable, Tuple
 from substate import SubState
-from card import Card, CardName, Deck, name2id, Position, dummyCard
+from card import (Card, CardName, Deck, name2id, Position,
+                  dummyCard)
 from action import (Action, DrawAction, EffectAction1,
                     EffectAction0, ArmsHoleAction2, EffectAction2,
+                    MahousekiAction,
                     SummonAction0, SummonAction1, SummonAction2)
 
 import random
@@ -20,8 +22,6 @@ class GameState:
                 deckpos += 1
         self.life: int = 8000
         self.hasNormalSummon: bool = False
-        self.cost1 = dummyCard
-        self.cost2 = dummyCard
 
     def __repr__(self):
         rep = ""
@@ -154,6 +154,21 @@ class GameState:
             acs.append(EffectAction2(c, t1, t2))
         return acs
 
+    def _validActionsMahouseki(self) -> Sequence[Action]:
+        acs: List[Action] = []
+        cards = self.getCardByPos(Position.TMP)
+        assert len(cards) == 3
+        if cards[0].name == CardName.m魔法石の採掘:
+            c, t1, t2 = cards[0], cards[1], cards[2]
+        elif cards[1].name == CardName.m魔法石の採掘:
+            c, t1, t2 = cards[1], cards[0], cards[2]
+        elif cards[2].name == CardName.m魔法石の採掘:
+            c, t1, t2 = cards[2], cards[0], cards[1]
+        targets = self.getTarget1(c)
+        for t3 in targets:
+            acs.append(MahousekiAction(c, t1, t2, t3))
+        return acs
+
     def vaildActions(self) -> Sequence[Action]:
         if self.subState == SubState.Draw:
             return [DrawAction(self.drawNum)]
@@ -167,6 +182,8 @@ class GameState:
             return self._validActionsKonKuro()
         elif self.subState == SubState.KuraisuSS:
             return self._validActionsKuraisu()
+        elif self.subState == SubState.Mahouseki:
+            return self._validActionsMahouseki()
         return []
 
     def runAction(self, action: Action) -> None:
@@ -187,6 +204,11 @@ class GameState:
             self.summon1(action.card, action.target)
         elif type(action) == SummonAction2:
             self.summon2(action.card, action.target1, action.target2)
+        elif type(action) == MahousekiAction:
+            self.effect3(action.card, action.t1,
+                         action.t2, action.t3)
+        else:
+            assert False, "not implemented"
 
     def summon0(self, card: Card):
         card.pos = Position.MONSTER_FIELD
@@ -214,6 +236,13 @@ class GameState:
 
     def effect2(self, card: Card, target1: Card, target2: Card) -> None:
         sub, num, lifedif = card.effect2(target1, target2)
+        self.subState = sub
+        self.drawNum = num
+        self.life += lifedif
+
+    def effect3(self, card: Card, target1: Card,
+                target2: Card, target3: Card) -> None:
+        sub, num, lifedif = card.effect3(target1, target2, target3)
         self.subState = sub
         self.drawNum = num
         self.life += lifedif
@@ -283,7 +312,7 @@ class GameState:
             targets = list(filter(lambda c: c.pos == Position.DECK, hearos))
             return self.select1Util(targets)
             # assert False, "not implemented"
-        elif card.name == CardName.k混沌の黒魔術師:
+        elif card.name in [CardName.k混沌の黒魔術師, CardName.m魔法石の採掘]:
             return self.select1Util(list(filter(
                 lambda c: c.isMagic(),
                 self.getCardByPos(Position.GRAVEYARD))))
@@ -353,7 +382,11 @@ class GameState:
         elif card.name == CardName.k光帝クライス:
             monsters = self.getCardByPos(Position.MONSTER_FIELD)
             return self.select2Util(monsters)
-
+        elif card.name == CardName.m魔法石の採掘:
+            hands = self.getCardByPos(Position.HAND)
+            tmp = list(filter(lambda x: x != card, hands))
+            hand2costs = self.select2Util(tmp)
+            return hand2costs
         return ret
 
     def canEffectMagic(self, card) -> bool:
